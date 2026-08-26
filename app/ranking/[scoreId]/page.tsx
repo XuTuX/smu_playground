@@ -42,7 +42,6 @@ export default async function ScoreDetailPage({ params }: { params: Promise<{ sc
       <Link href="/ranking" className="score-detail-back">← 개인 순위</Link>
       <header className={`score-detail-hero accent-${game.accent}`}>
         <div>
-          <span className="game-order-label">{game.code.replace("GAME ", "게임 ")}</span>
           <h1>{score.nickname}</h1>
           <p>{department.name} · {game.name}</p>
         </div>

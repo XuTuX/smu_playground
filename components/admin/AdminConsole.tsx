@@ -1,14 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PressableLink } from "@/components/ui/PressableLink";
 import { departments } from "@/data/departments";
 import { games } from "@/data/games";
-import type { GameSession } from "@/lib/types";
 
 type Snapshot = {
   summary: { playCount: number; champion: string };
-  sessions: GameSession[];
 };
 
 type ManualScoreResponse = {
@@ -106,28 +103,11 @@ export function AdminConsole() {
     }
   };
 
-  const action = async (name: "reset" | "expire_session", sessionId?: string) => {
-    if (name === "reset" && !window.confirm("개발 중 생성된 행사 세션과 점수를 초기화할까요?")) return;
-    setError("");
-    const response = await fetch("/api/admin/action", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: name, sessionId }),
-    });
-    if (!response.ok) {
-      const body = (await response.json()) as { error?: string };
-      setError(body.error ?? "작업 실패");
-    }
-    await load();
-  };
-
   const logout = async () => {
     await fetch("/api/admin/logout", { method: "POST" });
     setSnapshot(null);
     setSuccess("");
   };
-
-  const statusLabel = (status: GameSession["status"]) => status === "pending" ? "대기" : status === "registered" ? "등록 완료" : "만료";
 
   if (loading) return <div className="admin-loading">관리자 정보를 확인하고 있습니다.</div>;
 
@@ -153,7 +133,7 @@ export function AdminConsole() {
         <form onSubmit={submitManualScore}>
           <fieldset className="admin-game-picker">
             <legend>게임 선택</legend>
-            <div>{games.map((game) => <button type="button" aria-pressed={manualScore.gameId === game.id} onClick={() => setManualScore((current) => ({ ...current, gameId: game.id }))} key={game.id}><span>{game.code.replace("GAME ", "게임 ")}</span><strong>{game.name}</strong></button>)}</div>
+            <div>{games.map((game) => <button type="button" aria-pressed={manualScore.gameId === game.id} onClick={() => setManualScore((current) => ({ ...current, gameId: game.id }))} key={game.id}><strong>{game.name}</strong></button>)}</div>
           </fieldset>
           <div className="admin-score-fields">
             <label>학과<select value={manualScore.departmentId} onChange={(event) => setManualScore((current) => ({ ...current, departmentId: event.target.value }))} required>{activeDepartments.map((department) => <option value={department.id} key={department.id}>{department.name}</option>)}</select></label>
@@ -166,11 +146,6 @@ export function AdminConsole() {
           <button className="pressable-button pressable-orange admin-score-submit" type="submit" disabled={submitting}>{submitting ? "등록 중" : "점수 등록"}</button>
         </form>
       </section>
-
-      <section className="admin-terminals"><h2>현장 기기 등록 화면</h2><p>관리자 인증이 유지되는 이 브라우저에서만 열 수 있습니다.</p><div>{games.map((game) => <PressableLink href={`/play/${game.deviceId}`} className="pressable-cream" key={game.id}>{game.code.replace("GAME ", "게임 ")}</PressableLink>)}</div></section>
-
-      <div className="admin-section-title"><h2>게임 세션</h2><button className="pressable-button pressable-orange" type="button" onClick={() => action("reset")}>행사 데이터 초기화</button></div>
-      <div className="admin-table-wrap"><table><thead><tr><th>시간</th><th>기기</th><th>점수</th><th>상태</th><th>관리</th></tr></thead><tbody>{snapshot.sessions.map((session) => <tr key={session.id}><td>{new Date(session.createdAt).toLocaleTimeString("ko-KR")}</td><td>{session.deviceId}</td><td>{session.score}</td><td><span className={`session-status session-${session.status}`}>{statusLabel(session.status)}</span></td><td>{session.status === "pending" ? <button type="button" onClick={() => action("expire_session", session.id)}>만료 처리</button> : "—"}</td></tr>)}{snapshot.sessions.length === 0 && <tr><td colSpan={5}>아직 수신된 게임 세션이 없습니다.</td></tr>}</tbody></table></div>
     </div>
   );
 }
