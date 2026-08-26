@@ -16,7 +16,6 @@ export default function HomePage() {
       <header className="department-battle-hero">
         <div className="site-shell">
           <h1>SMU 놀이터</h1>
-          <p>각 게임에서 학과별 상위 5개 기록을 합산해 순위를 정합니다.</p>
         </div>
       </header>
       <div className="site-shell">

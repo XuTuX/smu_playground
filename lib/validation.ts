@@ -80,7 +80,7 @@ export function validateAdminScore(input: unknown) {
     ok: true as const,
     value: {
       gameId: game.id,
-      deviceId: game.deviceId,
+      deviceId: game.deviceId ?? game.id,
       studentId,
       departmentId: registration.value.departmentId,
       nickname: registration.value.nickname,

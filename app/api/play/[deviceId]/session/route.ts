@@ -11,6 +11,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ devi
   const { deviceId } = await params;
   const game = getGame(deviceId);
   if (!game) return Response.json({ error: "등록되지 않은 기기입니다." }, { status: 404 });
-  const session = getPendingGameSession(game.deviceId);
+  const session = getPendingGameSession(game.deviceId ?? game.id);
   return Response.json({ session: session ? { id: session.id, gameId: session.gameId, score: session.score, createdAt: session.createdAt } : null }, { headers: { "Cache-Control": "no-store" } });
 }

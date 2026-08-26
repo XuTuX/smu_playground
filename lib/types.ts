@@ -16,10 +16,10 @@ export type Department = {
 export type Game = {
   id: string;
   slug: string;
-  code: string;
+  code?: string;
   name: string;
   description: string;
-  deviceId: string;
+  deviceId?: string;
   accent: "yellow" | "pink" | "sky" | "mint" | "orange";
   maxScore: number;
   isActive: boolean;
