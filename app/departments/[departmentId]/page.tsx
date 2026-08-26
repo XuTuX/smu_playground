@@ -1,0 +1,8 @@
+import { notFound } from "next/navigation";
+import { RetroCard } from "@/components/ui/RetroCard";
+import { departments, getDepartment } from "@/data/departments";
+import { getAllScores } from "@/lib/mock-store";
+import { getDepartmentGameBreakdown, getDepartmentStandings } from "@/lib/ranking";
+
+export function generateStaticParams() { return departments.map((department) => ({ departmentId: department.id })); }
+export default async function DepartmentDetailPage({ params }: { params: Promise<{ departmentId: string }> }) { const department = getDepartment((await params).departmentId); if (!department) notFound(); const scores = getAllScores(); const standing = getDepartmentStandings(scores).find(({ departmentId }) => departmentId === department.id); const breakdown = getDepartmentGameBreakdown(scores, department.id).filter(({ topScores }) => topScores.length > 0); return <div className="site-shell department-detail"><header className="department-detail-hero"><h1>{department.name}</h1>{standing && <div><span>현재 종합 순위 <strong>{standing.rank}위</strong></span><span>종합 점수 <strong>{standing.totalScore.toLocaleString("ko-KR")}점</strong></span></div>}</header>{breakdown.length > 0 && <section className="section-block"><div className="section-heading"><h2>게임별 기록</h2></div><div className="breakdown-grid">{breakdown.map(({ game, topScores, subtotal }) => <RetroCard accent={game.accent} className="breakdown-card" key={game.id}><span className="game-order-label">{game.code.replace("GAME ", "게임 ")}</span><h3>{game.name}</h3><ol>{topScores.map((score, index) => <li key={score.id}><span>{index + 1}</span><strong>{score.nickname}</strong><b>{score.score}</b></li>)}</ol><p>합계 <strong>{subtotal}점</strong></p></RetroCard>)}</div></section>}</div>; }
