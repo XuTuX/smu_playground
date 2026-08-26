@@ -115,7 +115,6 @@ export function AdminConsole() {
     return (
       <form className="admin-login" onSubmit={login}>
         <h2>관리자 인증</h2>
-        <p>운영자 비밀번호를 입력해주세요. 개발 환경 기본값은 <code>playground</code>입니다.</p>
         <label htmlFor="admin-password">비밀번호<input id="admin-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label>
         {error && <p className="form-error" role="alert">{error}</p>}
         <button className="pressable-button pressable-orange" type="submit">관리 화면 열기</button>

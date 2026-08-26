@@ -1,6 +1,5 @@
 import "server-only";
 
-import { mockScores } from "@/data/mock";
 import { getDepartmentStandings, getPlayerStandings } from "@/lib/ranking";
 import type {
   GameSession,
@@ -39,7 +38,7 @@ function toPublicScore(score: StoredScoreRecord): ScoreRecord {
 }
 
 export function getAllScores() {
-  return [...mockScores, ...getStore().scores.map(toPublicScore)];
+  return getStore().scores.map(toPublicScore);
 }
 
 export function createGameSession(input: {

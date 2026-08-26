@@ -47,6 +47,15 @@ export default function HomePage() {
             </RetroCard>
           </section>
         )}
+        {standings.length === 0 && playerStandings.length === 0 && (
+          <section className="section-block">
+            <RetroCard style={{ padding: "64px 20px", textAlign: "center" }}>
+              <p style={{ margin: 0, fontSize: "17px", color: "var(--muted)" }}>
+                아직 등록된 게임 기록이 없습니다.
+              </p>
+            </RetroCard>
+          </section>
+        )}
       </div>
     </div>
   );

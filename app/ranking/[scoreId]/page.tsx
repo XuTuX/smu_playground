@@ -2,14 +2,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { PressableLink } from "@/components/ui/PressableLink";
-import { mockScores } from "@/data/mock";
 import { getDepartment } from "@/data/departments";
 import { getGame } from "@/data/games";
 import { getAllScores } from "@/lib/mock-store";
 import { getDepartmentStandings, getPlayerStandings } from "@/lib/ranking";
 
+export const dynamicParams = true;
+
 export function generateStaticParams() {
-  return getPlayerStandings(mockScores, { limit: 20 }).map(({ id }) => ({ scoreId: id }));
+  return [];
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ scoreId: string }> }): Promise<Metadata> {
