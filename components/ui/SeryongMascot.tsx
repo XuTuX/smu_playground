@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-import seryongImage from "@/assets/세룡이.png";
+import seryongImage from "@/assets/seryong.png";
 
 type SeryongMascotProps = {
   className?: string;
