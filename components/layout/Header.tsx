@@ -8,7 +8,7 @@ export function Header() {
       <div className="site-shell header-inner">
         <Link href="/" className="brand-lockup" aria-label="SMU 놀이터 홈">
           <span className="brand-icon" aria-hidden="true">
-            <SeryongMascot className="brand-mascot" sizes="36px" />
+            <SeryongMascot className="brand-mascot" sizes="36px" eager />
           </span>
           <span className="brand-text">
             <strong>SMU</strong>
