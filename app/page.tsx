@@ -3,6 +3,7 @@ import { DepartmentRanking } from "@/components/ranking/DepartmentRanking";
 import { PlayerRanking } from "@/components/ranking/PlayerRanking";
 import { RankingPodium } from "@/components/ranking/RankingPodium";
 import { RetroCard } from "@/components/ui/RetroCard";
+import { SeryongMascot } from "@/components/ui/SeryongMascot";
 import { getAllScores } from "@/lib/mock-store";
 import { getDepartmentStandings, getPlayerStandings } from "@/lib/ranking";
 
@@ -21,6 +22,7 @@ export default function HomePage() {
                 <p>종합 학과 TOP 3</p>
                 <h1 id="hall-of-fame-title">명예의 전당</h1>
               </div>
+              <SeryongMascot className="home-mascot" sizes="(max-width: 820px) 92px, 164px" />
             </div>
             <RankingPodium standings={standings} linked={false} />
           </section>
@@ -49,10 +51,10 @@ export default function HomePage() {
         )}
         {standings.length === 0 && playerStandings.length === 0 && (
           <section className="section-block">
-            <RetroCard style={{ padding: "64px 20px", textAlign: "center" }}>
-              <p style={{ margin: 0, fontSize: "17px", color: "var(--muted)" }}>
-                아직 등록된 게임 기록이 없습니다.
-              </p>
+            <RetroCard className="home-empty-card">
+              <SeryongMascot className="empty-state-mascot" sizes="110px" />
+              <p>아직 등록된 게임 기록이 없습니다.</p>
+              <span>세룡이와 함께 첫 기록을 남겨보세요!</span>
             </RetroCard>
           </section>
         )}
