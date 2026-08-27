@@ -683,9 +683,9 @@ html { scroll-behavior: auto; }
 .home-game-ranking-columns > section + section { border-left: var(--line); }
 .home-game-ranking-columns h4 { margin: 0; font-size: 23px; font-weight: 850; letter-spacing: -0.025em; }
 .home-game-ranking-columns section > p { margin: 5px 0 10px; color: var(--muted); font-size: 13px; }
-.home-game-ranking-columns .department-ranking-row { min-height: 58px; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 9px; padding: 7px 4px; border-bottom: 1px solid rgba(33, 29, 26, 0.16); }
+.home-game-ranking-columns .department-ranking-row { min-height: 58px; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 9px; padding: 7px 4px; border-bottom: 0; }
 .home-game-ranking-columns .department-ranking-row > b { font-family: var(--font-sans); font-size: 16px; font-variant-numeric: tabular-nums; }
-.home-game-ranking-columns .player-ranking-row { min-height: 58px; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 9px; padding: 7px 4px; border-bottom: 1px solid rgba(33, 29, 26, 0.16); }
+.home-game-ranking-columns .player-ranking-row { min-height: 58px; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 9px; padding: 7px 4px; border-bottom: 0; }
 .home-game-ranking-columns .player-ranking-row > span { width: 36px; height: 36px; border-width: 1px; border-radius: 9px; font-size: 11px; }
 .home-game-ranking-columns .player-ranking-row > em { display: none; }
 .home-game-ranking-columns .player-ranking-row > b { font-size: 19px; font-variant-numeric: tabular-nums; }
