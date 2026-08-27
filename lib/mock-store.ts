@@ -1,5 +1,6 @@
 import "server-only";
 
+import { mockScores } from "@/data/mock";
 import { getDepartmentStandings, getPlayerStandings } from "@/lib/ranking";
 import type {
   GameSession,
@@ -10,17 +11,33 @@ import type {
 type StoredScoreRecord = ScoreRecord & { studentId?: string };
 
 type MockStore = {
+  seedVersion: number;
   sessions: GameSession[];
   scores: StoredScoreRecord[];
 };
+
+const MOCK_SEED_VERSION = 1;
 
 declare global {
   var __smuPlaygroundStore: MockStore | undefined;
 }
 
 function getStore(): MockStore {
-  if (!globalThis.__smuPlaygroundStore) {
-    globalThis.__smuPlaygroundStore = { sessions: [], scores: [] };
+  if (globalThis.__smuPlaygroundStore?.seedVersion !== MOCK_SEED_VERSION) {
+    globalThis.__smuPlaygroundStore = {
+      seedVersion: MOCK_SEED_VERSION,
+      sessions: mockScores.map((score, index) => ({
+        id: score.sessionId,
+        eventId: `mock-event-${String(index + 1).padStart(3, "0")}`,
+        deviceId: `MOCK_${String((index % 5) + 1).padStart(2, "0")}`,
+        gameId: score.gameId,
+        score: score.score,
+        status: "registered",
+        createdAt: score.createdAt,
+        claimedAt: score.createdAt,
+      })),
+      scores: mockScores.map((score) => ({ ...score })),
+    };
   }
   return globalThis.__smuPlaygroundStore;
 }
@@ -193,5 +210,9 @@ export function expireGameSession(sessionId: string) {
 }
 
 export function resetEventData() {
-  globalThis.__smuPlaygroundStore = { sessions: [], scores: [] };
+  globalThis.__smuPlaygroundStore = {
+    seedVersion: MOCK_SEED_VERSION,
+    sessions: [],
+    scores: [],
+  };
 }
