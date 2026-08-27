@@ -1,6 +1,7 @@
 import { GameRankingBoards } from "@/components/home/GameRankingBoard";
 import { DepartmentRanking } from "@/components/ranking/DepartmentRanking";
 import { PlayerRanking } from "@/components/ranking/PlayerRanking";
+import { RankingPodium } from "@/components/ranking/RankingPodium";
 import { RetroCard } from "@/components/ui/RetroCard";
 import { getAllScores } from "@/lib/mock-store";
 import { getDepartmentStandings, getPlayerStandings } from "@/lib/ranking";
@@ -17,6 +18,15 @@ export default function HomePage() {
           <h1>전체 순위</h1>
           <p>종합 순위부터 게임별 학과·개인 순위까지 한 화면에서 확인하세요.</p>
         </header>
+        {standings.length >= 3 && (
+          <section className="home-hall-of-fame" aria-labelledby="hall-of-fame-title">
+            <div className="home-hall-of-fame-heading">
+              <h2 id="hall-of-fame-title">명예의 전당</h2>
+              <p>종합 학과 TOP 3</p>
+            </div>
+            <RankingPodium standings={standings} linked={false} />
+          </section>
+        )}
         {standings.length > 0 && (
           <section className="section-block home-overall-section">
             <div className="section-heading">
