@@ -1,7 +1,5 @@
 import Link from "next/link";
 
-const links = [["홈", "/"], ["게임별 순위", "/games"], ["개인 순위", "/ranking"]] as const;
-
 export function Header() {
   return (
     <header className="site-header">
@@ -20,9 +18,6 @@ export function Header() {
             <span>놀이터</span>
           </span>
         </Link>
-        <nav className="desktop-nav" aria-label="주요 메뉴">
-          {links.map(([label, href]) => <Link key={href} href={href}>{label}</Link>)}
-        </nav>
       </div>
     </header>
   );

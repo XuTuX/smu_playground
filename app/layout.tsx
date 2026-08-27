@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
-import { MobileNav } from "@/components/layout/MobileNav";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,7 +15,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Header />
         <main className="page-root">{children}</main>
         <Footer />
-        <MobileNav />
       </body>
     </html>
   );
