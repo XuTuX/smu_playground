@@ -86,6 +86,77 @@ export function getPlayerStandings(
   }));
 }
 
+export function getOverallPlayerStandings(
+  scores: ScoreRecord[],
+  options: { departmentId?: string; limit?: number } = {},
+): PlayerStanding[] {
+  const players = new Map<
+    string,
+    {
+      departmentId: string;
+      nickname: string;
+      bestByGame: Map<string, ScoreRecord>;
+      latestScore: ScoreRecord;
+    }
+  >();
+
+  for (const score of scores) {
+    if (options.departmentId && score.departmentId !== options.departmentId) {
+      continue;
+    }
+
+    const key = `${score.departmentId}:${score.nickname}`;
+    const player = players.get(key) ?? {
+      departmentId: score.departmentId,
+      nickname: score.nickname,
+      bestByGame: new Map<string, ScoreRecord>(),
+      latestScore: score,
+    };
+    const gameBest = player.bestByGame.get(score.gameId);
+
+    if (
+      !gameBest ||
+      score.score > gameBest.score ||
+      (score.score === gameBest.score && score.createdAt < gameBest.createdAt)
+    ) {
+      player.bestByGame.set(score.gameId, score);
+    }
+    if (score.createdAt > player.latestScore.createdAt) {
+      player.latestScore = score;
+    }
+    players.set(key, player);
+  }
+
+  const standings = [...players.values()]
+    .map((player) => ({
+      player,
+      totalScore: [...player.bestByGame.values()].reduce(
+        (total, score) => total + score.score,
+        0,
+      ),
+      gameCount: player.bestByGame.size,
+    }))
+    .sort(
+      (a, b) =>
+        b.totalScore - a.totalScore ||
+        b.gameCount - a.gameCount ||
+        a.player.nickname.localeCompare(b.player.nickname, "ko"),
+    );
+  const limited = options.limit ? standings.slice(0, options.limit) : standings;
+
+  return limited.map(({ player, totalScore }, index) => ({
+    ...player.latestScore,
+    id: `overall:${player.departmentId}:${player.nickname}`,
+    gameId: "overall",
+    score: totalScore,
+    rank: index + 1,
+    departmentName:
+      getDepartment(player.departmentId)?.name ?? "알 수 없는 학과",
+    gameName: "전체 게임",
+    gameCode: "TOTAL",
+  }));
+}
+
 function getActivities(scores: ScoreRecord[]): ActivityItem[] {
   return [...scores]
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))

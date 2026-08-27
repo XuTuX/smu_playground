@@ -5,7 +5,7 @@ import { PressableLink } from "@/components/ui/PressableLink";
 import { getDepartment } from "@/data/departments";
 import { getGame } from "@/data/games";
 import { getAllScores } from "@/lib/mock-store";
-import { getDepartmentStandings, getPlayerStandings } from "@/lib/ranking";
+import { getDepartmentStandings, getOverallPlayerStandings, getPlayerStandings } from "@/lib/ranking";
 
 export const dynamicParams = true;
 
@@ -29,7 +29,10 @@ export default async function ScoreDetailPage({ params }: { params: Promise<{ sc
   const department = getDepartment(score.departmentId);
   if (!game || !department) notFound();
 
-  const overallRank = getPlayerStandings(scores).find(({ id }) => id === score.id)?.rank;
+  const overallRank = getOverallPlayerStandings(scores).find(
+    ({ departmentId, nickname }) =>
+      departmentId === score.departmentId && nickname === score.nickname,
+  )?.rank;
   const gameRank = getPlayerStandings(scores, { gameId: score.gameId }).find(({ id }) => id === score.id)?.rank;
   const departmentRank = getDepartmentStandings(scores).find(({ departmentId }) => departmentId === score.departmentId)?.rank;
   const recordedAt = new Intl.DateTimeFormat("ko-KR", {

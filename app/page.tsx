@@ -5,12 +5,12 @@ import { PressableLink } from "@/components/ui/PressableLink";
 import { RetroCard } from "@/components/ui/RetroCard";
 import { SeryongMascot } from "@/components/ui/SeryongMascot";
 import { getAllScores } from "@/lib/mock-store";
-import { getDepartmentStandings, getPlayerStandings } from "@/lib/ranking";
+import { getDepartmentStandings, getOverallPlayerStandings } from "@/lib/ranking";
 
 export default function HomePage() {
   const scores = getAllScores();
   const standings = getDepartmentStandings(scores);
-  const playerStandings = getPlayerStandings(scores, { limit: 3 });
+  const playerStandings = getOverallPlayerStandings(scores, { limit: 3 });
 
   return (
     <div className="home-single-page">
@@ -66,7 +66,6 @@ export default function HomePage() {
               <div>
                 <h2>게임별 TOP 5</h2>
               </div>
-              <p className="ranking-rule">게임을 선택해 상위 기록을 확인하세요.</p>
             </div>
             <GameRankingBoards scores={scores} />
           </section>
