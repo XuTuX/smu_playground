@@ -17,19 +17,15 @@ export default function HomePage() {
       <div className="site-shell">
         {(standings.length > 0 || playerStandings.length > 0) && (
           <section className="home-top-rankings" aria-label="오늘의 상위 순위">
-            <div className="home-top-rankings-intro">
-              <div>
-                <p>오늘의 랭킹</p>
-                <h1>TOP 3</h1>
-              </div>
-              <SeryongMascot className="home-mascot" sizes="(max-width: 820px) 82px, 128px" eager />
-            </div>
+            <header className="home-ranking-intro">
+              <p>세명대학교 청룡체전</p>
+              <h1>최고의 학과를 가려라!</h1>
+            </header>
             <div className="home-top-ranking-grid">
               {standings.length > 0 && (
                 <section id="department-ranking" aria-labelledby="department-ranking-title">
                   <div className="home-ranking-heading">
                     <div>
-                      <span>DEPARTMENT</span>
                       <h2 id="department-ranking-title">학과 TOP 3</h2>
                     </div>
                     <PressableLink href="/departments" className="pressable-cream">자세히 보기</PressableLink>
@@ -43,7 +39,6 @@ export default function HomePage() {
                 <section id="individual-ranking" aria-labelledby="individual-ranking-title">
                   <div className="home-ranking-heading">
                     <div>
-                      <span>PLAYER</span>
                       <h2 id="individual-ranking-title">개인 TOP 3</h2>
                     </div>
                     <PressableLink href="/ranking" className="pressable-cream">자세히 보기</PressableLink>
@@ -69,7 +64,6 @@ export default function HomePage() {
           <section className="section-block home-all-games-section" id="game-rankings">
             <div className="section-heading">
               <div>
-                <span className="home-section-label">GAME RANKING</span>
                 <h2>게임별 TOP 5</h2>
               </div>
               <p className="ranking-rule">게임을 선택해 상위 기록을 확인하세요.</p>
