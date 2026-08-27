@@ -3,7 +3,6 @@ import { DepartmentRanking } from "@/components/ranking/DepartmentRanking";
 import { PlayerRanking } from "@/components/ranking/PlayerRanking";
 import { RankingPodium } from "@/components/ranking/RankingPodium";
 import { RetroCard } from "@/components/ui/RetroCard";
-import { games } from "@/data/games";
 import { getAllScores } from "@/lib/mock-store";
 import { getDepartmentStandings, getPlayerStandings } from "@/lib/ranking";
 
@@ -11,9 +10,6 @@ export default function HomePage() {
   const scores = getAllScores();
   const standings = getDepartmentStandings(scores);
   const playerStandings = getPlayerStandings(scores, { limit: 10 });
-  const playerCount = new Set(
-    scores.map((score) => `${score.departmentId}:${score.nickname}`),
-  ).size;
 
   return (
     <div className="home-single-page">
@@ -25,11 +21,6 @@ export default function HomePage() {
                 <p>종합 학과 TOP 3</p>
                 <h1 id="hall-of-fame-title">명예의 전당</h1>
               </div>
-              <dl className="home-summary-stats" aria-label="현재 참여 현황">
-                <div><dt>참여 학과</dt><dd>{standings.length}</dd></div>
-                <div><dt>참여 인원</dt><dd>{playerCount}</dd></div>
-                <div><dt>진행 게임</dt><dd>{games.length}</dd></div>
-              </dl>
             </div>
             <RankingPodium standings={standings} linked={false} />
           </section>
