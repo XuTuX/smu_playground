@@ -3,6 +3,7 @@ import { DepartmentRanking } from "@/components/ranking/DepartmentRanking";
 import { PlayerRanking } from "@/components/ranking/PlayerRanking";
 import { RankingPodium } from "@/components/ranking/RankingPodium";
 import { RetroCard } from "@/components/ui/RetroCard";
+import { games } from "@/data/games";
 import { getAllScores } from "@/lib/mock-store";
 import { getDepartmentStandings, getPlayerStandings } from "@/lib/ranking";
 
@@ -10,25 +11,31 @@ export default function HomePage() {
   const scores = getAllScores();
   const standings = getDepartmentStandings(scores);
   const playerStandings = getPlayerStandings(scores, { limit: 10 });
+  const playerCount = new Set(
+    scores.map((score) => `${score.departmentId}:${score.nickname}`),
+  ).size;
 
   return (
     <div className="home-single-page">
       <div className="site-shell">
-        <header className="home-page-intro">
-          <h1>전체 순위</h1>
-          <p>종합 순위부터 게임별 학과·개인 순위까지 한 화면에서 확인하세요.</p>
-        </header>
         {standings.length >= 3 && (
-          <section className="home-hall-of-fame" aria-labelledby="hall-of-fame-title">
+          <section className="home-hall-of-fame" id="hall-of-fame" aria-labelledby="hall-of-fame-title">
             <div className="home-hall-of-fame-heading">
-              <h2 id="hall-of-fame-title">명예의 전당</h2>
-              <p>종합 학과 TOP 3</p>
+              <div>
+                <p>종합 학과 TOP 3</p>
+                <h1 id="hall-of-fame-title">명예의 전당</h1>
+              </div>
+              <dl className="home-summary-stats" aria-label="현재 참여 현황">
+                <div><dt>참여 학과</dt><dd>{standings.length}</dd></div>
+                <div><dt>참여 인원</dt><dd>{playerCount}</dd></div>
+                <div><dt>진행 게임</dt><dd>{games.length}</dd></div>
+              </dl>
             </div>
             <RankingPodium standings={standings} linked={false} />
           </section>
         )}
         {standings.length > 0 && (
-          <section className="section-block home-overall-section">
+          <section className="section-block home-overall-section" id="department-ranking">
             <div className="section-heading">
               <h2>종합 학과 순위</h2>
               <p className="ranking-rule">게임별 학과 상위 5개 기록 합산</p>
@@ -39,7 +46,7 @@ export default function HomePage() {
           </section>
         )}
         {playerStandings.length > 0 && (
-          <section className="section-block home-player-ranking-section">
+          <section className="section-block home-player-ranking-section" id="individual-ranking">
             <div className="section-heading">
               <h2>종합 개인 순위</h2>
               <p className="ranking-rule">전체 게임 상위 10개 기록</p>
@@ -59,10 +66,10 @@ export default function HomePage() {
           </section>
         )}
         {scores.length > 0 && (
-          <section className="section-block home-all-games-section">
+          <section className="section-block home-all-games-section" id="game-rankings">
             <div className="section-heading">
               <h2>게임별 순위</h2>
-              <p className="ranking-rule">게임마다 학과 순위와 개인 순위를 함께 표시합니다.</p>
+              <p className="ranking-rule">게임을 선택하면 학과 순위와 개인 순위가 바뀝니다.</p>
             </div>
             <GameRankingBoards scores={scores} />
           </section>

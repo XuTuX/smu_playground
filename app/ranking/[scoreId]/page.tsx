@@ -40,7 +40,7 @@ export default async function ScoreDetailPage({ params }: { params: Promise<{ sc
 
   return (
     <div className="site-shell score-detail-page">
-      <Link href="/ranking" className="score-detail-back">← 개인 순위</Link>
+      <Link href="/#individual-ranking" className="score-detail-back">← 전체 순위</Link>
       <header className={`score-detail-hero accent-${game.accent}`}>
         <div>
           <h1>{score.nickname}</h1>

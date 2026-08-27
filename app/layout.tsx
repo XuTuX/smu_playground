@@ -12,8 +12,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ko">
       <body>
+        <a href="#main-content" className="skip-link">본문 바로가기</a>
         <Header />
-        <main className="page-root">{children}</main>
+        <main className="page-root" id="main-content">{children}</main>
         <Footer />
       </body>
     </html>

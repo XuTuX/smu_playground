@@ -1,19 +1,22 @@
 import { DepartmentRanking } from "@/components/ranking/DepartmentRanking";
 import { PlayerRanking } from "@/components/ranking/PlayerRanking";
+import { GameRankingTabs } from "@/components/home/GameRankingTabs";
 import { games } from "@/data/games";
 import { getDepartmentStandings, getPlayerStandings } from "@/lib/ranking";
 import type { ScoreRecord } from "@/lib/types";
 
 export function GameRankingBoards({ scores }: { scores: ScoreRecord[] }) {
   return (
-    <div className="home-game-boards">
+    <GameRankingTabs
+      tabs={games.map(({ id, name, accent }) => ({ id, name, accent }))}
+    >
       {games.map((game, index) => {
         const gameScores = scores.filter((score) => score.gameId === game.id);
         const departmentStandings = getDepartmentStandings(gameScores).slice(0, 5);
         const playerStandings = getPlayerStandings(gameScores, { limit: 5 });
 
         return (
-          <article className="home-game-board" key={game.id}>
+          <article className="home-game-board" id={`game-${game.slug}`} key={game.id}>
             <header className={`home-game-board-header accent-${game.accent}`}>
               <span>게임 {index + 1}</span>
               <h3>{game.name}</h3>
@@ -34,6 +37,6 @@ export function GameRankingBoards({ scores }: { scores: ScoreRecord[] }) {
           </article>
         );
       })}
-    </div>
+    </GameRankingTabs>
   );
 }
