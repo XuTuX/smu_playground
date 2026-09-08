@@ -1,173 +1,102 @@
 import "server-only";
 
 import {
-  appendGoogleSheetScore,
-  isGoogleSheetsEnabled,
-  readGoogleSheetScoreRows,
-} from "@/lib/google-sheets";
-import {
-  claimGameSession,
   createManualScore as createMockManualScore,
   getAllScores as getMockScores,
-  recordManualSession,
-  registerGameSession as registerMockGameSession,
-  releaseClaimedGameSession,
-  removeGameSession,
+  getStudentProfile as getMockStudentProfile,
 } from "@/lib/mock-store";
-import { getDepartmentStandings, getPlayerStandings } from "@/lib/ranking";
-import {
-  mergeSheetScore,
-  parseSheetScoreRows,
-  type SheetRowIssue,
-  type SheetScoreRecord,
-} from "@/lib/sheet-score-parser";
-import type { RegistrationResult, ScoreRecord } from "@/lib/types";
+import { isSupabaseConfigured, supabaseRest } from "@/lib/supabase-rest";
+import type { ScoreRecord } from "@/lib/types";
 
-type SheetCache = {
-  scores: SheetScoreRecord[] | null;
-  issues: SheetRowIssue[];
-  totalRows: number;
-  lastSyncedAt: string | null;
-  lastError: string | null;
-  expiresAt: number;
-  inFlight: Promise<ScoreSnapshot> | null;
+type SupabaseScoreRow = {
+  id: string;
+  student_id: string;
+  game_id: string;
+  score: number;
+  updated_at: string;
+  student: {
+    id: string;
+    nickname: string;
+    department_id: string;
+  };
+};
+
+type SupabaseStudentRow = {
+  id: string;
+  student_number: string;
+  nickname: string;
+  department_id: string;
+};
+
+type UpsertScoreRow = {
+  result_status: "created" | "updated" | "kept";
+  result_previous_score: number | null;
+  result_score_id: string;
+  result_student_id: string;
+  result_nickname: string;
+  result_department_id: string;
+  result_game_id: string;
+  result_score: number;
+  result_updated_at: string;
 };
 
 export type ScoreStoreStatus = {
-  mode: "mock" | "google-sheets";
-  state: "mock" | "ready" | "stale";
-  lastSyncedAt: string | null;
-  issueCount: number;
+  mode: "mock" | "supabase";
+  state: "mock" | "ready";
   totalRows: number;
-  error: string | null;
+  error: null;
 };
 
 export type ScoreSnapshot = {
-  scores: SheetScoreRecord[];
+  scores: ScoreRecord[];
   status: ScoreStoreStatus;
-  issues: SheetRowIssue[];
 };
 
-declare global {
-  var __smuSheetScoreCache: SheetCache | undefined;
-}
-
-function getSheetCache(): SheetCache {
-  globalThis.__smuSheetScoreCache ??= {
-    scores: null,
-    issues: [],
-    totalRows: 0,
-    lastSyncedAt: null,
-    lastError: null,
-    expiresAt: 0,
-    inFlight: null,
-  };
-  return globalThis.__smuSheetScoreCache;
-}
-
-function getCacheDurationMs() {
-  const configured = Number(process.env.GOOGLE_SHEETS_CACHE_SECONDS ?? "5");
-  const seconds = Number.isFinite(configured)
-    ? Math.min(60, Math.max(1, configured))
-    : 5;
-  return seconds * 1000;
-}
-
-function errorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "Google Sheets 동기화에 실패했습니다.";
-}
-
-function cacheSnapshot(state: "ready" | "stale"): ScoreSnapshot {
-  const cache = getSheetCache();
+function publicScore(row: SupabaseScoreRow): ScoreRecord {
   return {
-    scores: cache.scores ?? [],
-    issues: cache.issues,
-    status: {
-      mode: "google-sheets",
-      state,
-      lastSyncedAt: cache.lastSyncedAt,
-      issueCount: cache.issues.length,
-      totalRows: cache.totalRows,
-      error: cache.lastError,
-    },
+    id: row.id,
+    sessionId: row.id,
+    playerId: row.student.id,
+    gameId: row.game_id,
+    departmentId: row.student.department_id,
+    nickname: row.student.nickname,
+    score: row.score,
+    createdAt: row.updated_at,
   };
-}
-
-async function synchronizeSheetScores(): Promise<ScoreSnapshot> {
-  const cache = getSheetCache();
-  try {
-    const rows = await readGoogleSheetScoreRows();
-    const parsed = parseSheetScoreRows(rows);
-    if (parsed.fatal) {
-      throw new Error(parsed.issues.map(({ message }) => message).join(" "));
-    }
-    cache.scores = parsed.scores;
-    cache.issues = parsed.issues;
-    cache.totalRows = parsed.totalRows;
-    cache.lastSyncedAt = new Date().toISOString();
-    cache.lastError = null;
-    cache.expiresAt = Date.now() + getCacheDurationMs();
-    return cacheSnapshot("ready");
-  } catch (error) {
-    cache.lastError = errorMessage(error);
-    cache.expiresAt = Date.now() + getCacheDurationMs();
-    if (cache.scores) return cacheSnapshot("stale");
-    throw error;
-  }
-}
-
-async function getGoogleSheetSnapshot(options: { force?: boolean } = {}) {
-  const cache = getSheetCache();
-  if (!options.force && cache.scores && cache.expiresAt > Date.now()) {
-    return cacheSnapshot(cache.lastError ? "stale" : "ready");
-  }
-  if (cache.inFlight) return cache.inFlight;
-
-  cache.inFlight = synchronizeSheetScores();
-  try {
-    return await cache.inFlight;
-  } finally {
-    cache.inFlight = null;
-  }
-}
-
-function publicScore(score: SheetScoreRecord): ScoreRecord {
-  return {
-    id: score.id,
-    sessionId: score.sessionId,
-    gameId: score.gameId,
-    departmentId: score.departmentId,
-    nickname: score.nickname,
-    score: score.score,
-    createdAt: score.createdAt,
-  };
-}
-
-function updateCacheAfterAppend(score: SheetScoreRecord) {
-  const cache = getSheetCache();
-  cache.scores = mergeSheetScore(cache.scores ?? [], score);
-  cache.totalRows += 1;
-  cache.lastSyncedAt = new Date().toISOString();
-  cache.lastError = null;
-  cache.expiresAt = Date.now() + getCacheDurationMs();
 }
 
 export async function getScoreSnapshot(): Promise<ScoreSnapshot> {
-  if (isGoogleSheetsEnabled()) return getGoogleSheetSnapshot();
+  if (!isSupabaseConfigured()) {
+    const scores = getMockScores();
+    return {
+      scores,
+      status: {
+        mode: "mock",
+        state: "mock",
+        totalRows: scores.length,
+        error: null,
+      },
+    };
+  }
 
-  const scores = getMockScores().map<SheetScoreRecord>((score) => ({
-    ...score,
-    studentId: null,
-    source: "sheet",
-  }));
+  const select = [
+    "id",
+    "student_id",
+    "game_id",
+    "score",
+    "updated_at",
+    "student:students!scores_student_id_fkey(id,nickname,department_id)",
+  ].join(",");
+  const rows = await supabaseRest<SupabaseScoreRow[]>(
+    `scores?select=${encodeURIComponent(select)}&order=updated_at.asc`,
+  );
+  const scores = rows.map(publicScore);
+
   return {
     scores,
-    issues: [],
     status: {
-      mode: "mock",
-      state: "mock",
-      lastSyncedAt: null,
-      issueCount: 0,
+      mode: "supabase",
+      state: "ready",
       totalRows: scores.length,
       error: null,
     },
@@ -175,116 +104,63 @@ export async function getScoreSnapshot(): Promise<ScoreSnapshot> {
 }
 
 export async function getAllScores() {
-  const snapshot = await getScoreSnapshot();
-  return snapshot.scores.map(publicScore);
+  return (await getScoreSnapshot()).scores;
+}
+
+export async function getStudentProfile(studentNumber: string) {
+  if (!isSupabaseConfigured()) return getMockStudentProfile(studentNumber);
+
+  const rows = await supabaseRest<SupabaseStudentRow[]>(
+    `students?select=id,student_number,nickname,department_id&student_number=eq.${encodeURIComponent(studentNumber)}&limit=1`,
+  );
+  const student = rows[0];
+  if (!student) return null;
+
+  return {
+    nickname: student.nickname,
+    departmentId: student.department_id,
+  };
 }
 
 export async function createManualScore(input: {
-  deviceId: string;
   gameId: string;
   studentId: string;
   departmentId: string;
   nickname: string;
   score: number;
 }) {
-  if (!isGoogleSheetsEnabled()) return createMockManualScore(input);
-
-  const snapshot = await getGoogleSheetSnapshot();
-  const existing = snapshot.scores.find(
-    (score) =>
-      score.studentId === input.studentId && score.gameId === input.gameId,
-  );
-  const session = recordManualSession(input);
-  const score: SheetScoreRecord = {
-    id: crypto.randomUUID(),
-    sessionId: session.id,
-    studentId: input.studentId,
-    gameId: input.gameId,
-    departmentId: input.departmentId,
-    nickname: input.nickname,
-    score: input.score,
-    createdAt: session.createdAt,
-    source: "admin",
-  };
-
-  try {
-    await appendGoogleSheetScore(score);
-    updateCacheAfterAppend(score);
-  } catch (error) {
-    removeGameSession(session.id);
-    throw error;
+  if (!isSupabaseConfigured()) {
+    return createMockManualScore({
+      ...input,
+      deviceId: input.gameId,
+    });
   }
 
-  if (existing && input.score <= existing.score) {
-    return {
-      status: "kept" as const,
-      previousScore: existing.score,
-      score: publicScore(existing),
-    };
-  }
+  const rows = await supabaseRest<UpsertScoreRow[]>("rpc/upsert_admin_score", {
+    method: "POST",
+    body: JSON.stringify({
+      p_student_number: input.studentId,
+      p_game_id: input.gameId,
+      p_department_id: input.departmentId,
+      p_nickname: input.nickname,
+      p_score: input.score,
+    }),
+  });
+  const row = rows[0];
+  if (!row) throw new Error("점수 저장 결과를 확인할 수 없습니다.");
 
   return {
-    status: existing ? ("updated" as const) : ("created" as const),
-    previousScore: existing?.score ?? null,
-    score: publicScore(score),
+    status: row.result_status,
+    previousScore: row.result_previous_score,
+    score: {
+      id: row.result_score_id,
+      sessionId: row.result_score_id,
+      playerId: row.result_student_id,
+      gameId: row.result_game_id,
+      departmentId: row.result_department_id,
+      nickname: row.result_nickname,
+      score: row.result_score,
+      createdAt: row.result_updated_at,
+    } satisfies ScoreRecord,
   };
-}
-
-function registrationResult(
-  score: ScoreRecord,
-  allScores: ScoreRecord[],
-): RegistrationResult {
-  const player = getPlayerStandings([score], { limit: 1 })[0];
-  const playerRank =
-    getPlayerStandings(allScores, { gameId: score.gameId }).find(
-      ({ id }) => id === score.id,
-    )?.rank ?? 1;
-  const departmentRank =
-    getDepartmentStandings(allScores).find(
-      ({ departmentId }) => departmentId === score.departmentId,
-    )?.rank ?? 1;
-
-  return {
-    scoreId: score.id,
-    nickname: score.nickname,
-    departmentName: player?.departmentName ?? "학과",
-    gameCode: player?.gameCode ?? "GAME",
-    score: score.score,
-    playerRank,
-    departmentRank,
-  };
-}
-
-export async function registerGameSession(input: {
-  sessionId: string;
-  departmentId: string;
-  nickname: string;
-}) {
-  if (!isGoogleSheetsEnabled()) return registerMockGameSession(input);
-
-  const session = claimGameSession(input.sessionId);
-  if (!session) return null;
-
-  const score: SheetScoreRecord = {
-    id: crypto.randomUUID(),
-    sessionId: session.id,
-    studentId: null,
-    gameId: session.gameId,
-    departmentId: input.departmentId,
-    nickname: input.nickname,
-    score: session.score,
-    createdAt: session.claimedAt ?? new Date().toISOString(),
-    source: "esp32",
-  };
-
-  try {
-    const snapshot = await getGoogleSheetSnapshot();
-    await appendGoogleSheetScore(score);
-    updateCacheAfterAppend(score);
-    const allScores = mergeSheetScore(snapshot.scores, score).map(publicScore);
-    return registrationResult(publicScore(score), allScores);
-  } catch (error) {
-    releaseClaimedGameSession(session.id);
-    throw error;
-  }
 }

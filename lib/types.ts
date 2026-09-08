@@ -28,6 +28,7 @@ export type Game = {
 export type ScoreRecord = {
   id: string;
   sessionId: string;
+  playerId?: string;
   gameId: string;
   departmentId: string;
   nickname: string;

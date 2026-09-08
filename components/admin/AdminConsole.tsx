@@ -7,14 +7,14 @@ import { games } from "@/data/games";
 type Snapshot = {
   summary: { playCount: number; champion: string };
   sync: {
-    mode: "mock" | "google-sheets";
-    state: "mock" | "ready" | "stale";
-    lastSyncedAt: string | null;
-    issueCount: number;
+    mode: "mock" | "supabase";
+    state: "mock" | "ready" | "error";
     totalRows: number;
     error: string | null;
   };
 };
+
+type StudentLookupState = "idle" | "loading" | "new" | "found" | "error";
 
 type ManualScoreResponse = {
   error?: string;
@@ -32,6 +32,7 @@ export function AdminConsole() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [studentLookup, setStudentLookup] = useState<StudentLookupState>("idle");
   const [manualScore, setManualScore] = useState({
     gameId: games[0]?.id ?? "",
     departmentId: activeDepartments[0]?.id ?? "",
@@ -57,6 +58,57 @@ export function AdminConsole() {
     const timer = window.setInterval(() => void load(), 5000);
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    const studentId = manualScore.studentId;
+    if (studentId.length < 6) {
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setStudentLookup("loading");
+      try {
+        const response = await fetch(`/api/admin/students/${studentId}`, {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        const body = (await response.json()) as {
+          found?: boolean;
+          student?: { nickname: string; departmentId: string };
+        };
+        if (!response.ok) {
+          if (response.status === 401) setSnapshot(null);
+          setStudentLookup("error");
+          return;
+        }
+        if (body.found && body.student) {
+          setManualScore((current) =>
+            current.studentId === studentId
+              ? {
+                  ...current,
+                  nickname: body.student?.nickname ?? "",
+                  departmentId:
+                    body.student?.departmentId ?? current.departmentId,
+                }
+              : current,
+          );
+          setStudentLookup("found");
+        } else {
+          setStudentLookup("new");
+        }
+      } catch (lookupError) {
+        if ((lookupError as Error).name !== "AbortError") {
+          setStudentLookup("error");
+        }
+      }
+    }, 350);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [manualScore.studentId]);
 
   const login = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -109,6 +161,7 @@ export function AdminConsole() {
       }
 
       setManualScore((current) => ({ ...current, studentId: "", nickname: "", score: "" }));
+      setStudentLookup("idle");
       await load();
     } finally {
       setSubmitting(false);
@@ -137,10 +190,10 @@ export function AdminConsole() {
   return (
     <div className="admin-dashboard">
       <div className="admin-toolbar"><span>관리자로 로그인됨</span><button type="button" className="text-button" onClick={logout}>로그아웃</button></div>
-      <p className={snapshot.sync.state === "stale" ? "form-error" : "form-success"} role="status">
+      <p className={snapshot.sync.state === "error" ? "form-error" : "form-success"} role="status">
         {snapshot.sync.mode === "mock" && "개발용 mock 점수 저장소를 사용 중입니다."}
-        {snapshot.sync.state === "ready" && `Google Sheets 연결됨 · ${snapshot.sync.totalRows}개 행 확인 · 오류 ${snapshot.sync.issueCount}개${snapshot.sync.lastSyncedAt ? ` · 마지막 동기화 ${new Date(snapshot.sync.lastSyncedAt).toLocaleTimeString("ko-KR")}` : ""}`}
-        {snapshot.sync.state === "stale" && `Google Sheets 동기화 지연 · 마지막 정상 데이터를 표시 중입니다.${snapshot.sync.error ? ` (${snapshot.sync.error})` : ""}`}
+        {snapshot.sync.state === "ready" && `Supabase 연결됨 · 게임별 최고 점수 ${snapshot.sync.totalRows}개`}
+        {snapshot.sync.state === "error" && `Supabase 연결 오류${snapshot.sync.error ? ` · ${snapshot.sync.error}` : ""}`}
       </p>
       <div className="admin-summary"><div><span>등록된 기록</span><strong>{snapshot.summary.playCount}</strong></div><div><span>현재 1위 학과</span><strong>{snapshot.summary.champion}</strong></div></div>
 
@@ -152,14 +205,30 @@ export function AdminConsole() {
             <div>{games.map((game) => <button type="button" aria-pressed={manualScore.gameId === game.id} onClick={() => setManualScore((current) => ({ ...current, gameId: game.id }))} key={game.id}><strong>{game.name}</strong></button>)}</div>
           </fieldset>
           <div className="admin-score-fields">
-            <label>학과<select value={manualScore.departmentId} onChange={(event) => setManualScore((current) => ({ ...current, departmentId: event.target.value }))} required>{activeDepartments.map((department) => <option value={department.id} key={department.id}>{department.name}</option>)}</select></label>
-            <label>학번<input type="text" inputMode="numeric" autoComplete="off" placeholder="숫자 6~12자리" value={manualScore.studentId} onChange={(event) => setManualScore((current) => ({ ...current, studentId: event.target.value.replace(/\D/g, "").slice(0, 12) }))} required /></label>
-            <label>닉네임<input type="text" autoComplete="off" minLength={2} maxLength={12} placeholder="2~12자" value={manualScore.nickname} onChange={(event) => setManualScore((current) => ({ ...current, nickname: event.target.value }))} required /></label>
+            <label>학번<input type="text" inputMode="numeric" autoComplete="off" placeholder="숫자 6~12자리" value={manualScore.studentId} onChange={(event) => {
+              const studentId = event.target.value.replace(/\D/g, "").slice(0, 12);
+              setStudentLookup("idle");
+              setManualScore((current) => ({
+                ...current,
+                studentId,
+                nickname: studentId === current.studentId ? current.nickname : "",
+                departmentId:
+                  studentId === current.studentId
+                    ? current.departmentId
+                    : (activeDepartments[0]?.id ?? ""),
+              }));
+            }} required /></label>
+            <label>학과<select value={manualScore.departmentId} onChange={(event) => setManualScore((current) => ({ ...current, departmentId: event.target.value }))} disabled={studentLookup === "found"} required>{activeDepartments.map((department) => <option value={department.id} key={department.id}>{department.name}</option>)}</select></label>
+            <label>닉네임<input type="text" autoComplete="off" minLength={2} maxLength={12} placeholder="2~12자" value={manualScore.nickname} onChange={(event) => setManualScore((current) => ({ ...current, nickname: event.target.value }))} readOnly={studentLookup === "found"} required /></label>
             <label>점수<input type="number" min={0} max={selectedGame?.maxScore ?? 999} step={1} placeholder={`0~${selectedGame?.maxScore ?? 999}`} value={manualScore.score} onChange={(event) => setManualScore((current) => ({ ...current, score: event.target.value }))} required /></label>
           </div>
+          {studentLookup === "loading" && <p className="form-success" role="status">학번을 확인하는 중입니다.</p>}
+          {studentLookup === "found" && <p className="form-success" role="status">기존 학생입니다. 닉네임과 학과를 자동으로 불러왔습니다.</p>}
+          {studentLookup === "new" && <p className="form-success" role="status">처음 등록하는 학번입니다. 학과와 닉네임을 입력해주세요.</p>}
+          {studentLookup === "error" && <p className="form-error" role="alert">학번 조회에 실패했습니다. 잠시 후 다시 입력해주세요.</p>}
           {error && <p className="form-error" role="alert">{error}</p>}
           {success && <p className="form-success" role="status">{success}</p>}
-          <button className="pressable-button pressable-orange admin-score-submit" type="submit" disabled={submitting}>{submitting ? "등록 중" : "점수 등록"}</button>
+          <button className="pressable-button pressable-orange admin-score-submit" type="submit" disabled={submitting || studentLookup === "loading"}>{submitting ? "등록 중" : "점수 등록"}</button>
         </form>
       </section>
     </div>

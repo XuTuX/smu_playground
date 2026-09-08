@@ -105,7 +105,7 @@ export function getOverallPlayerStandings(
       continue;
     }
 
-    const key = `${score.departmentId}:${score.nickname}`;
+    const key = score.playerId ?? `${score.departmentId}:${score.nickname}`;
     const player = players.get(key) ?? {
       departmentId: score.departmentId,
       nickname: score.nickname,
@@ -208,7 +208,9 @@ export function getDashboardData(scores: ScoreRecord[]): DashboardData {
   });
 
   const uniquePlayers = new Set(
-    scores.map((score) => `${score.departmentId}:${score.nickname}`),
+    scores.map(
+      (score) => score.playerId ?? `${score.departmentId}:${score.nickname}`,
+    ),
   );
 
   return {

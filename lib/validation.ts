@@ -1,34 +1,6 @@
 import { getDepartment } from "@/data/departments";
 import { getGame } from "@/data/games";
 
-export function validateDeviceScore(input: unknown) {
-  if (!input || typeof input !== "object") {
-    return { ok: false as const, error: "요청 형식이 올바르지 않습니다." };
-  }
-
-  const body = input as Record<string, unknown>;
-  const deviceId = typeof body.device_id === "string" ? body.device_id.trim() : "";
-  const gameId = typeof body.game_id === "string" ? body.game_id.trim() : "";
-  const eventId = typeof body.event_id === "string" ? body.event_id.trim() : null;
-  const score = typeof body.score === "number" ? body.score : Number.NaN;
-  const game = getGame(gameId);
-
-  if (!deviceId || !game || game.deviceId !== deviceId.toUpperCase()) {
-    return { ok: false as const, error: "기기와 게임 정보가 일치하지 않습니다." };
-  }
-  if (!Number.isSafeInteger(score) || score < 0 || score > game.maxScore) {
-    return { ok: false as const, error: `점수는 0~${game.maxScore} 정수여야 합니다.` };
-  }
-  if (eventId && (eventId.length > 64 || !/^[a-zA-Z0-9._:-]+$/.test(eventId))) {
-    return { ok: false as const, error: "event_id 형식이 올바르지 않습니다." };
-  }
-
-  return {
-    ok: true as const,
-    value: { deviceId: game.deviceId, gameId: game.id, score, eventId },
-  };
-}
-
 export function validateRegistration(input: unknown) {
   if (!input || typeof input !== "object") {
     return { ok: false as const, error: "요청 형식이 올바르지 않습니다." };
@@ -80,7 +52,6 @@ export function validateAdminScore(input: unknown) {
     ok: true as const,
     value: {
       gameId: game.id,
-      deviceId: game.deviceId ?? game.id,
       studentId,
       departmentId: registration.value.departmentId,
       nickname: registration.value.nickname,

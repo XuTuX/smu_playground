@@ -46,6 +46,7 @@ function toPublicScore(score: StoredScoreRecord): ScoreRecord {
   return {
     id: score.id,
     sessionId: score.sessionId,
+    playerId: score.playerId,
     gameId: score.gameId,
     departmentId: score.departmentId,
     nickname: score.nickname,
@@ -56,6 +57,12 @@ function toPublicScore(score: StoredScoreRecord): ScoreRecord {
 
 export function getAllScores() {
   return getStore().scores.map(toPublicScore);
+}
+
+export function getStudentProfile(studentId: string) {
+  const score = getStore().scores.find((record) => record.studentId === studentId);
+  if (!score) return null;
+  return { nickname: score.nickname, departmentId: score.departmentId };
 }
 
 export function createGameSession(input: {
@@ -199,6 +206,7 @@ export function createManualScore(input: {
   const score: StoredScoreRecord = {
     id: crypto.randomUUID(),
     sessionId,
+    playerId: crypto.randomUUID(),
     gameId: input.gameId,
     studentId: input.studentId,
     departmentId: input.departmentId,
