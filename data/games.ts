@@ -4,6 +4,8 @@ export const games: Game[] = [
   {
     id: "flappy",
     slug: "flappy",
+    code: "GAME 01",
+    deviceId: "GAME_01",
     name: "1D FLAPPY",
     description: "버튼으로 장애물을 피해 최대한 오래 살아남기",
     accent: "yellow",
@@ -13,6 +15,8 @@ export const games: Game[] = [
   {
     id: "reaction",
     slug: "reaction",
+    code: "GAME 02",
+    deviceId: "GAME_02",
     name: "REACTION",
     description: "LED 신호가 나타나면 누구보다 빠르게 버튼 누르기",
     accent: "pink",
@@ -22,6 +26,8 @@ export const games: Game[] = [
   {
     id: "dino-run",
     slug: "dino-run",
+    code: "GAME 03",
+    deviceId: "GAME_03",
     name: "DINO RUN",
     description: "다가오는 장애물을 타이밍에 맞춰 점프하기",
     accent: "sky",
@@ -31,6 +37,8 @@ export const games: Game[] = [
   {
     id: "timing",
     slug: "timing",
+    code: "GAME 04",
+    deviceId: "GAME_04",
     name: "TIMING",
     description: "움직이는 LED를 목표 지점에 정확히 멈추기",
     accent: "mint",
@@ -40,6 +48,8 @@ export const games: Game[] = [
   {
     id: "rhythm",
     slug: "rhythm",
+    code: "GAME 05",
+    deviceId: "GAME_05",
     name: "RHYTHM",
     description: "LED 리듬에 맞춰 정확하게 버튼 입력하기",
     accent: "orange",
@@ -49,9 +59,11 @@ export const games: Game[] = [
 ];
 
 export function getGame(idOrDevice: string) {
+  const normalized = idOrDevice.toUpperCase();
   return games.find(
     (game) =>
       game.id === idOrDevice ||
-      game.slug === idOrDevice,
+      game.slug === idOrDevice ||
+      game.deviceId === normalized,
   );
 }

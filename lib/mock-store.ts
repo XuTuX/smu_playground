@@ -95,6 +95,30 @@ export function getPendingGameSession(deviceId: string) {
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0] ?? null;
 }
 
+export function claimGameSession(sessionId: string) {
+  const session = getStore().sessions.find(({ id }) => id === sessionId);
+  if (!session || session.status !== "pending") return null;
+  session.status = "registered";
+  session.claimedAt = new Date().toISOString();
+  return { ...session };
+}
+
+export function releaseClaimedGameSession(sessionId: string) {
+  const session = getStore().sessions.find(({ id }) => id === sessionId);
+  if (!session || session.status !== "registered") return false;
+  session.status = "pending";
+  session.claimedAt = null;
+  return true;
+}
+
+export function removeGameSession(sessionId: string) {
+  const store = getStore();
+  const index = store.sessions.findIndex(({ id }) => id === sessionId);
+  if (index < 0) return false;
+  store.sessions.splice(index, 1);
+  return true;
+}
+
 export function registerGameSession(input: {
   sessionId: string;
   departmentId: string;
@@ -150,19 +174,9 @@ export function createManualScore(input: {
   score: number;
 }) {
   const store = getStore();
-  const sessionId = crypto.randomUUID();
-  const createdAt = new Date().toISOString();
-
-  store.sessions.push({
-    id: sessionId,
-    eventId: `admin-${crypto.randomUUID()}`,
-    deviceId: input.deviceId,
-    gameId: input.gameId,
-    score: input.score,
-    status: "registered",
-    createdAt,
-    claimedAt: createdAt,
-  });
+  const session = recordManualSession(input);
+  const sessionId = session.id;
+  const createdAt = session.createdAt;
 
   const existing = store.scores.find(
     (score) => score.studentId === input.studentId && score.gameId === input.gameId,
@@ -194,6 +208,26 @@ export function createManualScore(input: {
   };
   store.scores.push(score);
   return { status: "created" as const, previousScore: null, score: toPublicScore(score) };
+}
+
+export function recordManualSession(input: {
+  deviceId: string;
+  gameId: string;
+  score: number;
+}) {
+  const createdAt = new Date().toISOString();
+  const session: GameSession = {
+    id: crypto.randomUUID(),
+    eventId: `admin-${crypto.randomUUID()}`,
+    deviceId: input.deviceId,
+    gameId: input.gameId,
+    score: input.score,
+    status: "registered",
+    createdAt,
+    claimedAt: createdAt,
+  };
+  getStore().sessions.push(session);
+  return session;
 }
 
 export function getRecentSessions(limit = 20) {

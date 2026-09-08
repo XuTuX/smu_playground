@@ -43,6 +43,18 @@ NEXT_PUBLIC_REGISTERED_RESET_SECONDS=12
 
 개발 환경에서는 simulator에 `dev-local` 기기 키를 허용하며, 관리자 기본 비밀번호는 `playground`입니다. 프로덕션에서는 반드시 환경 변수를 설정해야 합니다.
 
+### 구글 스프레드시트 점수 연동
+
+구글 스프레드시트를 확정 점수 원장으로 사용하려면 `.env.example`의 `GOOGLE_SHEETS_*` 및 `GOOGLE_SERVICE_ACCOUNT_*` 값을 `.env.local`과 배포 환경에 설정한 뒤 `GOOGLE_SHEETS_ENABLED=true`로 변경합니다. 설정 전에는 기존 mock 저장소가 그대로 동작합니다.
+
+`점수` 시트의 첫 행은 다음 헤더를 사용합니다.
+
+```text
+record_id | session_id | student_id | game_id | department_id | nickname | score | created_at | active | source
+```
+
+읽기·쓰기 권한, 서비스 계정 생성, 중복 처리와 운영 절차는 [구글 스프레드시트 점수 자동 반영 가이드](docs/구글-스프레드시트-점수-자동-반영-가이드.md)를 참고하세요.
+
 ## ESP32 점수 API
 
 ```http

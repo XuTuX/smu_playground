@@ -2,26 +2,23 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { PressableLink } from "@/components/ui/PressableLink";
+import { RankingAutoRefresh } from "@/components/ranking/RankingAutoRefresh";
 import { getDepartment } from "@/data/departments";
 import { getGame } from "@/data/games";
-import { getAllScores } from "@/lib/mock-store";
+import { getAllScores } from "@/lib/score-store";
 import { getDepartmentStandings, getOverallPlayerStandings, getPlayerStandings } from "@/lib/ranking";
 
-export const dynamicParams = true;
-
-export function generateStaticParams() {
-  return [];
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ scoreId: string }> }): Promise<Metadata> {
   const { scoreId } = await params;
-  const score = getAllScores().find(({ id }) => id === scoreId);
+  const score = (await getAllScores()).find(({ id }) => id === scoreId);
   return { title: score ? `${score.nickname} 기록` : "기록 상세" };
 }
 
 export default async function ScoreDetailPage({ params }: { params: Promise<{ scoreId: string }> }) {
   const { scoreId } = await params;
-  const scores = getAllScores();
+  const scores = await getAllScores();
   const score = scores.find(({ id }) => id === scoreId);
   if (!score) notFound();
 
@@ -43,6 +40,7 @@ export default async function ScoreDetailPage({ params }: { params: Promise<{ sc
 
   return (
     <div className="site-shell score-detail-page">
+      <RankingAutoRefresh />
       <Link href="/ranking" className="score-detail-back">← 전체 순위</Link>
       <header className={`score-detail-hero accent-${game.accent}`}>
         <div>

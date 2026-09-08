@@ -1,19 +1,23 @@
 import { GameRankingBoards } from "@/components/home/GameRankingBoard";
 import { DepartmentRanking } from "@/components/ranking/DepartmentRanking";
 import { PlayerRanking } from "@/components/ranking/PlayerRanking";
+import { RankingAutoRefresh } from "@/components/ranking/RankingAutoRefresh";
 import { PressableLink } from "@/components/ui/PressableLink";
 import { RetroCard } from "@/components/ui/RetroCard";
 import { SeryongMascot } from "@/components/ui/SeryongMascot";
-import { getAllScores } from "@/lib/mock-store";
+import { getAllScores } from "@/lib/score-store";
 import { getDepartmentStandings, getOverallPlayerStandings } from "@/lib/ranking";
 
-export default function HomePage() {
-  const scores = getAllScores();
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const scores = await getAllScores();
   const standings = getDepartmentStandings(scores);
   const playerStandings = getOverallPlayerStandings(scores, { limit: 3 });
 
   return (
     <div className="home-single-page">
+      <RankingAutoRefresh />
       <div className="site-shell">
         {(standings.length > 0 || playerStandings.length > 0) && (
           <section className="home-top-rankings" aria-label="오늘의 상위 순위">

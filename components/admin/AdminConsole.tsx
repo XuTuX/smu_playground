@@ -6,6 +6,14 @@ import { games } from "@/data/games";
 
 type Snapshot = {
   summary: { playCount: number; champion: string };
+  sync: {
+    mode: "mock" | "google-sheets";
+    state: "mock" | "ready" | "stale";
+    lastSyncedAt: string | null;
+    issueCount: number;
+    totalRows: number;
+    error: string | null;
+  };
 };
 
 type ManualScoreResponse = {
@@ -44,7 +52,11 @@ export function AdminConsole() {
     }
   };
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    void load();
+    const timer = window.setInterval(() => void load(), 5000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const login = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -125,6 +137,11 @@ export function AdminConsole() {
   return (
     <div className="admin-dashboard">
       <div className="admin-toolbar"><span>관리자로 로그인됨</span><button type="button" className="text-button" onClick={logout}>로그아웃</button></div>
+      <p className={snapshot.sync.state === "stale" ? "form-error" : "form-success"} role="status">
+        {snapshot.sync.mode === "mock" && "개발용 mock 점수 저장소를 사용 중입니다."}
+        {snapshot.sync.state === "ready" && `Google Sheets 연결됨 · ${snapshot.sync.totalRows}개 행 확인 · 오류 ${snapshot.sync.issueCount}개${snapshot.sync.lastSyncedAt ? ` · 마지막 동기화 ${new Date(snapshot.sync.lastSyncedAt).toLocaleTimeString("ko-KR")}` : ""}`}
+        {snapshot.sync.state === "stale" && `Google Sheets 동기화 지연 · 마지막 정상 데이터를 표시 중입니다.${snapshot.sync.error ? ` (${snapshot.sync.error})` : ""}`}
+      </p>
       <div className="admin-summary"><div><span>등록된 기록</span><strong>{snapshot.summary.playCount}</strong></div><div><span>현재 1위 학과</span><strong>{snapshot.summary.champion}</strong></div></div>
 
       <section className="admin-score-entry">

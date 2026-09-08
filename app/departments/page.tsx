@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
 import { DepartmentRanking } from "@/components/ranking/DepartmentRanking";
+import { RankingAutoRefresh } from "@/components/ranking/RankingAutoRefresh";
 import { RetroCard } from "@/components/ui/RetroCard";
-import { getAllScores } from "@/lib/mock-store";
+import { getAllScores } from "@/lib/score-store";
 import { getDepartmentStandings } from "@/lib/ranking";
 
 export const metadata: Metadata = { title: "학과 순위" };
+export const dynamic = "force-dynamic";
 
-export default function DepartmentsPage() {
-  const standings = getDepartmentStandings(getAllScores());
+export default async function DepartmentsPage() {
+  const standings = getDepartmentStandings(await getAllScores());
 
   return (
     <div className="site-shell ranking-list-page">
+      <RankingAutoRefresh />
       <header className="page-intro public-page-intro games-page-intro">
         <h1>학과 순위</h1>
         <p>각 게임에서 학과별 상위 5개 기록을 합산한 전체 순위입니다.</p>

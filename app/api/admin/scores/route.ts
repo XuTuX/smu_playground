@@ -1,5 +1,5 @@
 import { isValidAdminRequest } from "@/lib/admin-auth";
-import { createManualScore } from "@/lib/mock-store";
+import { createManualScore } from "@/lib/score-store";
 import { validateAdminScore } from "@/lib/validation";
 
 export async function POST(request: Request) {
@@ -19,6 +19,11 @@ export async function POST(request: Request) {
     return Response.json({ error: validation.error }, { status: 400 });
   }
 
-  const result = createManualScore(validation.value);
-  return Response.json({ success: true, ...result }, { status: result.status === "created" ? 201 : 200 });
+  try {
+    const result = await createManualScore(validation.value);
+    return Response.json({ success: true, ...result }, { status: result.status === "created" ? 201 : 200 });
+  } catch (error) {
+    console.error("Failed to save admin score", error);
+    return Response.json({ error: "점수 저장소에 연결하지 못했습니다. 동기화 설정을 확인해주세요." }, { status: 503 });
+  }
 }
