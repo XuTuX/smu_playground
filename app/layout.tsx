@@ -14,7 +14,7 @@ const jua = Jua({
 
 export const metadata: Metadata = {
   title: { default: "SMU 놀이터", template: "%s · SMU 놀이터" },
-  description: "세명대학교 학과 대항 미니게임 아케이드",
+  description: "세명대학교 청룡체전 5종 미니게임 순위판",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

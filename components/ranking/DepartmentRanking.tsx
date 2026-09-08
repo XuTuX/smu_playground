@@ -12,6 +12,10 @@ export function DepartmentRanking({
   limit = 5,
   linked = true,
 }: DepartmentRankingProps) {
+  if (standings.length === 0) {
+    return <div className="ranking-empty-message">아직 기록이 없어요.</div>;
+  }
+
   return (
     <div className="department-ranking-list" role="list">
       {standings.slice(0, limit).map((standing) => {

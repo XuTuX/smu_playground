@@ -29,6 +29,7 @@ export default async function GameDetailPage({ params }: { params: Promise<{ gam
       <PressableLink href="/#game-rankings" className="pressable-cream game-detail-back">← 게임별 순위</PressableLink>
       <header className={`game-detail-hero accent-${game.accent}${top ? "" : " no-high-score"}`}>
         <div>
+          <span className="game-detail-emoji" aria-hidden="true">{game.emoji}</span>
           <h1>{game.name}</h1>
           <p>{game.description}</p>
         </div>

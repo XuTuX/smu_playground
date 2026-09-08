@@ -17,6 +17,7 @@ export type Game = {
   id: string;
   slug: string;
   code?: string;
+  emoji: string;
   name: string;
   description: string;
   deviceId?: string;
@@ -34,6 +35,10 @@ export type ScoreRecord = {
   nickname: string;
   score: number;
   createdAt: string;
+};
+
+export type AdminScoreRecord = ScoreRecord & {
+  studentNumber: string;
 };
 
 export type GameSession = {

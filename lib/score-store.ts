@@ -2,11 +2,14 @@ import "server-only";
 
 import {
   createManualScore as createMockManualScore,
+  deleteAdminScore as deleteMockAdminScore,
+  getAdminScoreRecords as getMockAdminScoreRecords,
   getAllScores as getMockScores,
   getStudentProfile as getMockStudentProfile,
+  updateAdminScore as updateMockAdminScore,
 } from "@/lib/mock-store";
 import { isSupabaseConfigured, supabaseRest } from "@/lib/supabase-rest";
-import type { ScoreRecord } from "@/lib/types";
+import type { AdminScoreRecord, ScoreRecord } from "@/lib/types";
 
 type SupabaseScoreRow = {
   id: string;
@@ -16,9 +19,21 @@ type SupabaseScoreRow = {
   updated_at: string;
   student: {
     id: string;
+    student_number: string;
     nickname: string;
     department_id: string;
   };
+};
+
+type UpdatedScoreRow = {
+  result_score_id: string;
+  result_student_id: string;
+  result_student_number: string;
+  result_nickname: string;
+  result_department_id: string;
+  result_game_id: string;
+  result_score: number;
+  result_updated_at: string;
 };
 
 type SupabaseStudentRow = {
@@ -107,6 +122,27 @@ export async function getAllScores() {
   return (await getScoreSnapshot()).scores;
 }
 
+export async function getAdminScoreRecords(): Promise<AdminScoreRecord[]> {
+  if (!isSupabaseConfigured()) return getMockAdminScoreRecords();
+
+  const select = [
+    "id",
+    "student_id",
+    "game_id",
+    "score",
+    "updated_at",
+    "student:students!scores_student_id_fkey(id,student_number,nickname,department_id)",
+  ].join(",");
+  const rows = await supabaseRest<SupabaseScoreRow[]>(
+    `scores?select=${encodeURIComponent(select)}&order=updated_at.desc`,
+  );
+
+  return rows.map((row) => ({
+    ...publicScore(row),
+    studentNumber: row.student.student_number,
+  }));
+}
+
 export async function getStudentProfile(studentNumber: string) {
   if (!isSupabaseConfigured()) return getMockStudentProfile(studentNumber);
 
@@ -163,4 +199,44 @@ export async function createManualScore(input: {
       createdAt: row.result_updated_at,
     } satisfies ScoreRecord,
   };
+}
+
+export async function updateAdminScore(
+  scoreId: string,
+  input: { departmentId: string; nickname: string; score: number },
+) {
+  if (!isSupabaseConfigured()) return updateMockAdminScore(scoreId, input);
+
+  const rows = await supabaseRest<UpdatedScoreRow[]>("rpc/update_admin_score", {
+    method: "POST",
+    body: JSON.stringify({
+      p_score_id: scoreId,
+      p_department_id: input.departmentId,
+      p_nickname: input.nickname,
+      p_score: input.score,
+    }),
+  });
+  const row = rows[0];
+  if (!row) return null;
+
+  return {
+    id: row.result_score_id,
+    sessionId: row.result_score_id,
+    playerId: row.result_student_id,
+    studentNumber: row.result_student_number,
+    gameId: row.result_game_id,
+    departmentId: row.result_department_id,
+    nickname: row.result_nickname,
+    score: row.result_score,
+    createdAt: row.result_updated_at,
+  } satisfies AdminScoreRecord;
+}
+
+export async function deleteAdminScore(scoreId: string) {
+  if (!isSupabaseConfigured()) return deleteMockAdminScore(scoreId);
+
+  return supabaseRest<boolean>("rpc/delete_admin_score", {
+    method: "POST",
+    body: JSON.stringify({ p_score_id: scoreId }),
+  });
 }

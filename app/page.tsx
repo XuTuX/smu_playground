@@ -19,12 +19,11 @@ export default async function HomePage() {
     <div className="home-single-page">
       <RankingAutoRefresh />
       <div className="site-shell">
-        {(standings.length > 0 || playerStandings.length > 0) && (
-          <section className="home-top-rankings" aria-label="오늘의 상위 순위">
-            <header className="home-ranking-intro">
-              <p>세명대학교 청룡체전</p>
-              <h1>최고의 학과를 가려라!</h1>
-            </header>
+        <section className="home-top-rankings" aria-label="오늘의 상위 순위">
+          <header className="home-ranking-intro">
+            <h1>최고의 학과를<br />가려라!</h1>
+          </header>
+          {(standings.length > 0 || playerStandings.length > 0) && (
             <div className="home-top-ranking-grid">
               {standings.length > 0 && (
                 <section id="department-ranking" aria-labelledby="department-ranking-title">
@@ -53,27 +52,24 @@ export default async function HomePage() {
                 </section>
               )}
             </div>
-          </section>
-        )}
+          )}
+        </section>
         {standings.length === 0 && playerStandings.length === 0 && (
           <section className="section-block">
             <RetroCard className="home-empty-card">
               <SeryongMascot className="empty-state-mascot" sizes="110px" eager />
               <p>아직 등록된 게임 기록이 없습니다.</p>
-              <span>세룡이와 함께 첫 기록을 남겨보세요!</span>
             </RetroCard>
           </section>
         )}
-        {scores.length > 0 && (
-          <section className="section-block home-all-games-section" id="game-rankings">
-            <div className="section-heading">
-              <div>
-                <h2>게임별 TOP 5</h2>
-              </div>
+        <section className="section-block home-all-games-section" id="game-rankings">
+          <div className="section-heading">
+            <div>
+              <h2>5개 게임 순위</h2>
             </div>
-            <GameRankingBoards scores={scores} />
-          </section>
-        )}
+          </div>
+          <GameRankingBoards scores={scores} />
+        </section>
       </div>
     </div>
   );

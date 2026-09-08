@@ -9,7 +9,7 @@ import {
 } from "react";
 import type { Game } from "@/lib/types";
 
-type GameRankingTab = Pick<Game, "id" | "name" | "accent">;
+type GameRankingTab = Pick<Game, "id" | "name" | "emoji" | "accent">;
 
 type GameRankingTabsProps = {
   tabs: GameRankingTab[];
@@ -66,7 +66,7 @@ export function GameRankingTabs({ tabs, children }: GameRankingTabsProps) {
               onKeyDown={(event) => handleKeyDown(event, index)}
               key={tab.id}
             >
-              <small>게임 {index + 1}</small>
+              <span className="home-game-tab-emoji" aria-hidden="true">{tab.emoji}</span>
               <strong>{tab.name}</strong>
             </button>
           );

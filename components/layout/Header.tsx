@@ -15,7 +15,7 @@ export function Header() {
             <span>놀이터</span>
           </span>
         </Link>
-        <p className="header-context"><span>청룡체전</span> 학과 대항 미니게임 순위판</p>
+        <strong className="header-context">청룡체전</strong>
       </div>
     </header>
   );

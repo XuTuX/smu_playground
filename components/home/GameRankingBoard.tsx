@@ -9,9 +9,9 @@ import type { ScoreRecord } from "@/lib/types";
 export function GameRankingBoards({ scores }: { scores: ScoreRecord[] }) {
   return (
     <GameRankingTabs
-      tabs={games.map(({ id, name, accent }) => ({ id, name, accent }))}
+      tabs={games.map(({ id, name, emoji, accent }) => ({ id, name, emoji, accent }))}
     >
-      {games.map((game, index) => {
+      {games.map((game) => {
         const gameScores = scores.filter((score) => score.gameId === game.id);
         const departmentStandings = getDepartmentStandings(gameScores).slice(0, 5);
         const playerStandings = getPlayerStandings(gameScores, { limit: 5 });
@@ -19,10 +19,9 @@ export function GameRankingBoards({ scores }: { scores: ScoreRecord[] }) {
         return (
           <article className="home-game-board" id={`game-${game.slug}`} key={game.id}>
             <header className={`home-game-board-header accent-${game.accent}`}>
-              <span>게임 {index + 1}</span>
+              <span className="home-game-board-emoji" aria-hidden="true">{game.emoji}</span>
               <div className="home-game-board-copy">
                 <h3>{game.name}</h3>
-                <p>{game.description}</p>
               </div>
               <PressableLink href={`/games/${game.slug}`} className="pressable-cream">자세히 보기</PressableLink>
             </header>

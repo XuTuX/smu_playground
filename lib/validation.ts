@@ -59,3 +59,27 @@ export function validateAdminScore(input: unknown) {
     },
   };
 }
+
+export function validateAdminScoreEdit(input: unknown) {
+  if (!input || typeof input !== "object") {
+    return { ok: false as const, error: "요청 형식이 올바르지 않습니다." };
+  }
+
+  const body = input as Record<string, unknown>;
+  const registration = validateRegistration(input);
+  const score = typeof body.score === "number" ? body.score : Number.NaN;
+
+  if (!registration.ok) return registration;
+  if (!Number.isSafeInteger(score) || score < 0 || score > 9999) {
+    return { ok: false as const, error: "점수는 0~9999 정수여야 합니다." };
+  }
+
+  return {
+    ok: true as const,
+    value: {
+      departmentId: registration.value.departmentId,
+      nickname: registration.value.nickname,
+      score,
+    },
+  };
+}
