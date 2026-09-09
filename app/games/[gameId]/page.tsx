@@ -50,9 +50,9 @@ export default async function GameDetailPage({ params }: { params: Promise<{ gam
             </RetroCard>
           </section>
           <section className="section-block game-ranking-section">
-            <div className="section-heading"><h2>개인 순위</h2></div>
+            <div className="section-heading"><h2>{game.rankingMode === "team" ? "팀" : "개인"} 순위</h2></div>
             <RetroCard className="game-ranking-card">
-              <PlayerRanking standings={playerStandings} />
+              <PlayerRanking standings={playerStandings} mode={game.rankingMode} />
             </RetroCard>
           </section>
         </div>

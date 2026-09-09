@@ -30,9 +30,9 @@ export function GameRankingBoards({ scores }: { scores: ScoreRecord[] }) {
                 <h4>학과 TOP 5</h4>
                 <DepartmentRanking standings={departmentStandings} limit={5} linked={false} />
               </section>
-              <section aria-label={`${game.name} 개인 순위`}>
-                <h4>개인 TOP 5</h4>
-                <PlayerRanking standings={playerStandings} linked={false} />
+              <section aria-label={`${game.name} ${game.rankingMode === "team" ? "팀" : "개인"} 순위`}>
+                <h4>{game.rankingMode === "team" ? "팀" : "개인"} TOP 5</h4>
+                <PlayerRanking standings={playerStandings} linked={false} mode={game.rankingMode} />
               </section>
             </div>
           </article>

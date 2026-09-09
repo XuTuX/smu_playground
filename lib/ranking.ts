@@ -101,6 +101,8 @@ export function getOverallPlayerStandings(
   >();
 
   for (const score of scores) {
+    if (getGame(score.gameId)?.rankingMode === "team") continue;
+
     if (options.departmentId && score.departmentId !== options.departmentId) {
       continue;
     }

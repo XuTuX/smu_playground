@@ -54,8 +54,8 @@ export default async function ScoreDetailPage({ params }: { params: Promise<{ sc
         </div>
       </header>
       <section className="score-detail-stats" aria-label="기록 순위">
-        <div><span>전체 개인 순위</span><strong>{overallRank}위</strong></div>
-        <div><span>게임 내 순위</span><strong>{gameRank}위</strong></div>
+        <div><span>{game.rankingMode === "team" ? "참가 유형" : "전체 개인 순위"}</span><strong>{game.rankingMode === "team" ? "팀전" : `${overallRank}위`}</strong></div>
+        <div><span>{game.rankingMode === "team" ? "팀 순위" : "게임 내 순위"}</span><strong>{gameRank}위</strong></div>
         <div><span>학과 종합 순위</span><strong>{departmentRank}위</strong></div>
         <div><span>기록 시각</span><strong className="score-detail-date">{recordedAt}</strong></div>
       </section>

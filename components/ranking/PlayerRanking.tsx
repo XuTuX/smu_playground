@@ -4,11 +4,12 @@ import type { PlayerStanding } from "@/lib/types";
 type PlayerRankingProps = {
   standings: PlayerStanding[];
   linked?: boolean;
+  mode?: "individual" | "team";
 };
 
-export function PlayerRanking({ standings, linked = true }: PlayerRankingProps) {
+export function PlayerRanking({ standings, linked = true, mode = "individual" }: PlayerRankingProps) {
   if (standings.length === 0) {
-    return <div className="ranking-empty-message">등록된 기록이 없습니다.</div>;
+    return <div className="ranking-empty-message">등록된 {mode === "team" ? "팀" : "개인"} 기록이 없습니다.</div>;
   }
 
   return (

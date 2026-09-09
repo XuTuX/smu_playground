@@ -10,6 +10,7 @@ import type { ScoreRecord } from "@/lib/types";
 export function RankingExplorer({ scores }: { scores: ScoreRecord[] }) {
   const [gameId, setGameId] = useState(""); const [departmentId, setDepartmentId] = useState("");
   const isOverall = gameId === "";
+  const rankingMode = games.find((game) => game.id === gameId)?.rankingMode ?? "individual";
   const standings = useMemo(
     () =>
       isOverall
@@ -25,5 +26,5 @@ export function RankingExplorer({ scores }: { scores: ScoreRecord[] }) {
     [scores, gameId, departmentId, isOverall],
   );
 
-  return <><div className="ranking-filters"><label>게임<select value={gameId} onChange={(event) => setGameId(event.target.value)}><option value="">전체 게임</option>{games.map((game) => <option value={game.id} key={game.id}>{game.name}</option>)}</select></label><label>학과<select value={departmentId} onChange={(event) => setDepartmentId(event.target.value)}><option value="">전체 학과</option>{departments.map((department) => <option value={department.id} key={department.id}>{department.name}</option>)}</select></label>{standings.length > 0 && <span className="filter-result-count">{isOverall ? `참가자 ${standings.length}명` : `기록 ${standings.length}개`}</span>}</div><PlayerRanking standings={standings} linked={!isOverall} /></>;
+  return <><div className="ranking-filters"><label>게임<select value={gameId} onChange={(event) => setGameId(event.target.value)}><option value="">전체 개인 순위</option>{games.map((game) => <option value={game.id} key={game.id}>{game.name}</option>)}</select></label><label>학과<select value={departmentId} onChange={(event) => setDepartmentId(event.target.value)}><option value="">전체 학과</option>{departments.map((department) => <option value={department.id} key={department.id}>{department.name}</option>)}</select></label>{standings.length > 0 && <span className="filter-result-count">{isOverall ? `참가자 ${standings.length}명` : rankingMode === "team" ? `팀 ${standings.length}개` : `기록 ${standings.length}개`}</span>}</div><PlayerRanking standings={standings} linked={!isOverall} mode={rankingMode} /></>;
 }

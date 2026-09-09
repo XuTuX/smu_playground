@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { departments } from "@/data/departments";
 import { games } from "@/data/games";
 import type { AdminScoreRecord } from "@/lib/types";
@@ -38,6 +38,10 @@ function getGameName(gameId: string) {
   return games.find(({ id }) => id === gameId)?.name ?? gameId;
 }
 
+function isTeamGame(gameId: string) {
+  return games.find(({ id }) => id === gameId)?.rankingMode === "team";
+}
+
 function getDepartmentName(departmentId: string) {
   return departments.find(({ id }) => id === departmentId)?.name ?? departmentId;
 }
@@ -68,22 +72,37 @@ export function AdminConsole() {
   });
 
   const selectedGame = games.find(({ id }) => id === manualScore.gameId) ?? games[0];
+  const selectedGameIsTeam = selectedGame?.rankingMode === "team";
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       const response = await fetch("/api/admin/snapshot", { cache: "no-store" });
-      if (response.ok) setSnapshot((await response.json()) as Snapshot);
-      else setSnapshot(null);
+      if (response.ok) {
+        setSnapshot((await response.json()) as Snapshot);
+        return;
+      }
+
+      if (response.status === 401) setSnapshot(null);
+    } catch {
+      setError("관리자 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  const hasSnapshot = snapshot !== null;
 
   useEffect(() => {
-    void load();
+    const timer = window.setTimeout(() => void load(), 0);
+    return () => window.clearTimeout(timer);
+  }, [load]);
+
+  useEffect(() => {
+    if (!hasSnapshot) return;
+
     const timer = window.setInterval(() => void load(), 5000);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [hasSnapshot, load]);
 
   useEffect(() => {
     const studentId = manualScore.studentId;
@@ -111,7 +130,7 @@ export function AdminConsole() {
             current.studentId === studentId
               ? {
                   ...current,
-                  nickname: body.student?.nickname ?? "",
+                  nickname: selectedGameIsTeam ? current.nickname : (body.student?.nickname ?? ""),
                   departmentId: body.student?.departmentId ?? current.departmentId,
                 }
               : current,
@@ -129,21 +148,25 @@ export function AdminConsole() {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [manualScore.studentId]);
+  }, [manualScore.studentId, selectedGameIsTeam]);
 
   const login = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
-    const response = await fetch("/api/admin/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
-    });
-    const body = (await response.json()) as { error?: string };
-    if (!response.ok) setError(body.error ?? "로그인 실패");
-    else {
-      setPassword("");
-      await load();
+    try {
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const body = (await response.json()) as { error?: string };
+      if (!response.ok) setError(body.error ?? "로그인 실패");
+      else {
+        setPassword("");
+        await load();
+      }
+    } catch {
+      setError("로그인 요청에 실패했습니다. 잠시 후 다시 시도해주세요.");
     }
   };
 
@@ -178,12 +201,14 @@ export function AdminConsole() {
       } else if (body.status === "kept") {
         setSuccess(`기존 최고 점수 ${body.previousScore}점이 더 높아 순위는 그대로 유지됩니다.`);
       } else {
-        setSuccess(`${manualScore.nickname} 학생의 ${body.score?.score}점을 등록했습니다.`);
+        setSuccess(`${manualScore.nickname} ${selectedGameIsTeam ? "팀의" : "학생의"} ${body.score?.score}점을 등록했습니다.`);
       }
 
       setManualScore((current) => ({ ...current, studentId: "", nickname: "", score: "" }));
       setStudentLookup("idle");
       await load();
+    } catch {
+      setError("점수 등록 요청에 실패했습니다. 잠시 후 다시 시도해주세요.");
     } finally {
       setSubmitting(false);
     }
@@ -227,6 +252,8 @@ export function AdminConsole() {
       setEditForm(null);
       setSuccess("점수 기록과 학생 정보를 수정했습니다.");
       await load();
+    } catch {
+      setError("점수 수정 요청에 실패했습니다. 잠시 후 다시 시도해주세요.");
     } finally {
       setBusyScoreId(null);
     }
@@ -255,15 +282,23 @@ export function AdminConsole() {
       if (editForm?.id === record.id) setEditForm(null);
       setSuccess("선택한 게임 점수만 삭제했습니다. 학생 정보는 유지됩니다.");
       await load();
+    } catch {
+      setError("점수 삭제 요청에 실패했습니다. 잠시 후 다시 시도해주세요.");
     } finally {
       setBusyScoreId(null);
     }
   };
 
   const logout = async () => {
-    await fetch("/api/admin/logout", { method: "POST" });
-    setSnapshot(null);
-    setSuccess("");
+    setError("");
+    try {
+      const response = await fetch("/api/admin/logout", { method: "POST" });
+      if (!response.ok) throw new Error("logout failed");
+      setSnapshot(null);
+      setSuccess("");
+    } catch {
+      setError("로그아웃 요청에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    }
   };
 
   if (loading) return <div className="admin-loading">관리자 정보를 확인하고 있습니다.</div>;
@@ -290,14 +325,17 @@ export function AdminConsole() {
       <div className="admin-summary"><div><span>등록된 기록</span><strong>{snapshot.summary.playCount}</strong></div><div><span>현재 1위 학과</span><strong>{snapshot.summary.champion}</strong></div></div>
 
       <section className="admin-score-entry">
-        <div className="admin-score-heading"><h2>점수 직접 등록</h2><p>같은 학번과 게임은 가장 높은 점수 하나만 순위에 반영됩니다.</p></div>
+        <div className="admin-score-heading"><h2>점수 직접 등록</h2><p>{selectedGameIsTeam ? "협동 게임은 대표 학번과 팀명으로 등록합니다." : "같은 학번과 게임은 가장 높은 점수 하나만 순위에 반영됩니다."}</p></div>
         <form onSubmit={submitManualScore}>
           <fieldset className="admin-game-picker">
             <legend>게임 선택</legend>
-            <div>{games.map((game) => <button type="button" aria-pressed={manualScore.gameId === game.id} onClick={() => setManualScore((current) => ({ ...current, gameId: game.id }))} key={game.id}><strong>{game.name}</strong></button>)}</div>
+            <div>{games.map((game) => <button type="button" aria-pressed={manualScore.gameId === game.id} onClick={() => {
+              setStudentLookup("idle");
+              setManualScore((current) => ({ ...current, gameId: game.id, studentId: "", nickname: "", score: "" }));
+            }} key={game.id}><strong>{game.name}</strong></button>)}</div>
           </fieldset>
           <div className="admin-score-fields">
-            <label>학번<input type="text" inputMode="numeric" autoComplete="off" placeholder="숫자 6~12자리" value={manualScore.studentId} onChange={(event) => {
+            <label>{selectedGameIsTeam ? "대표 학번" : "학번"}<input type="text" inputMode="numeric" autoComplete="off" placeholder="숫자 6~12자리" value={manualScore.studentId} onChange={(event) => {
               const studentId = event.target.value.replace(/\D/g, "").slice(0, 12);
               setStudentLookup("idle");
               setManualScore((current) => ({
@@ -308,12 +346,12 @@ export function AdminConsole() {
               }));
             }} required /></label>
             <label>학과<select value={manualScore.departmentId} onChange={(event) => setManualScore((current) => ({ ...current, departmentId: event.target.value }))} disabled={studentLookup === "found"} required>{activeDepartments.map((department) => <option value={department.id} key={department.id}>{department.name}</option>)}</select></label>
-            <label>닉네임<input type="text" autoComplete="off" minLength={2} maxLength={12} placeholder="2~12자" value={manualScore.nickname} onChange={(event) => setManualScore((current) => ({ ...current, nickname: event.target.value }))} readOnly={studentLookup === "found"} required /></label>
+            <label>{selectedGameIsTeam ? "팀명" : "닉네임"}<input type="text" autoComplete="off" minLength={2} maxLength={12} placeholder="2~12자" value={manualScore.nickname} onChange={(event) => setManualScore((current) => ({ ...current, nickname: event.target.value }))} readOnly={!selectedGameIsTeam && studentLookup === "found"} required /></label>
             <label>점수<input type="number" min={0} max={selectedGame?.maxScore ?? 9999} step={1} placeholder={`0~${selectedGame?.maxScore ?? 9999}`} value={manualScore.score} onChange={(event) => setManualScore((current) => ({ ...current, score: event.target.value }))} required /></label>
           </div>
           {studentLookup === "loading" && <p className="form-success" role="status">학번을 확인하는 중입니다.</p>}
-          {studentLookup === "found" && <p className="form-success" role="status">기존 학생입니다. 닉네임과 학과를 자동으로 불러왔습니다.</p>}
-          {studentLookup === "new" && <p className="form-success" role="status">처음 등록하는 학번입니다. 학과와 닉네임을 입력해주세요.</p>}
+          {studentLookup === "found" && <p className="form-success" role="status">{selectedGameIsTeam ? "기존 학생의 학과를 불러왔습니다. 팀명을 입력해주세요." : "기존 학생입니다. 닉네임과 학과를 자동으로 불러왔습니다."}</p>}
+          {studentLookup === "new" && <p className="form-success" role="status">{selectedGameIsTeam ? "처음 등록하는 대표 학번입니다. 학과와 팀명을 입력해주세요." : "처음 등록하는 학번입니다. 학과와 닉네임을 입력해주세요."}</p>}
           {studentLookup === "error" && <p className="form-error" role="alert">학번 조회에 실패했습니다. 잠시 후 다시 입력해주세요.</p>}
           {error && <p className="form-error" role="alert">{error}</p>}
           {success && <p className="form-success" role="status">{success}</p>}
@@ -323,7 +361,7 @@ export function AdminConsole() {
 
       <section className="admin-records" aria-labelledby="admin-records-title">
         <div className="admin-section-title">
-          <div><p className="mono-label">SCORE RECORDS</p><h2 id="admin-records-title">등록 점수 관리</h2></div>
+          <div><h2 id="admin-records-title">등록 점수 관리</h2></div>
           <p>최근 수정 순 · 총 {snapshot.records.length}건</p>
         </div>
         <p className="admin-records-note">닉네임·학과 수정은 같은 학번의 모든 게임 기록에 반영됩니다. 삭제는 선택한 게임 점수만 처리합니다.</p>
@@ -336,7 +374,7 @@ export function AdminConsole() {
         ) : (
           <div className="admin-table-wrap">
             <table>
-              <thead><tr><th>게임</th><th>학번</th><th>닉네임</th><th>학과</th><th>점수</th><th>수정 시각</th><th>관리</th></tr></thead>
+              <thead><tr><th>게임</th><th>학번/대표</th><th>닉네임/팀명</th><th>학과</th><th>점수</th><th>수정 시각</th><th>관리</th></tr></thead>
               <tbody>
                 {snapshot.records.map((record) => {
                   const editing = editForm?.id === record.id;
@@ -344,7 +382,7 @@ export function AdminConsole() {
                     <tr key={record.id}>
                       <td><strong>{getGameName(record.gameId)}</strong></td>
                       <td>{record.studentNumber}</td>
-                      <td>{editing ? <input aria-label="닉네임 수정" type="text" minLength={2} maxLength={12} value={editForm.nickname} onChange={(event) => setEditForm({ ...editForm, nickname: event.target.value })} form={`edit-score-${record.id}`} /> : record.nickname}</td>
+                      <td>{editing ? <input aria-label={isTeamGame(record.gameId) ? "팀명 수정" : "닉네임 수정"} type="text" minLength={2} maxLength={12} value={editForm.nickname} onChange={(event) => setEditForm({ ...editForm, nickname: event.target.value })} form={`edit-score-${record.id}`} /> : record.nickname}</td>
                       <td>{editing ? <select aria-label="학과 수정" value={editForm.departmentId} onChange={(event) => setEditForm({ ...editForm, departmentId: event.target.value })} form={`edit-score-${record.id}`}>{activeDepartments.map((department) => <option value={department.id} key={department.id}>{department.name}</option>)}</select> : getDepartmentName(record.departmentId)}</td>
                       <td>{editing ? <input aria-label="점수 수정" type="number" min={0} max={9999} step={1} value={editForm.score} onChange={(event) => setEditForm({ ...editForm, score: event.target.value })} form={`edit-score-${record.id}`} /> : record.score.toLocaleString("ko-KR")}</td>
                       <td>{formatUpdatedAt(record.createdAt)}</td>

@@ -20,6 +20,7 @@ export type Game = {
   emoji: string;
   name: string;
   description: string;
+  rankingMode: "individual" | "team";
   deviceId?: string;
   accent: "yellow" | "pink" | "sky" | "mint" | "orange";
   maxScore: number;

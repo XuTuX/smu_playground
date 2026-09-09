@@ -4,7 +4,6 @@ import { PlayerRanking } from "@/components/ranking/PlayerRanking";
 import { RankingAutoRefresh } from "@/components/ranking/RankingAutoRefresh";
 import { PressableLink } from "@/components/ui/PressableLink";
 import { RetroCard } from "@/components/ui/RetroCard";
-import { SeryongMascot } from "@/components/ui/SeryongMascot";
 import { getAllScores } from "@/lib/score-store";
 import { getDepartmentStandings, getOverallPlayerStandings } from "@/lib/ranking";
 
@@ -21,7 +20,7 @@ export default async function HomePage() {
       <div className="site-shell">
         <section className="home-top-rankings" aria-label="오늘의 상위 순위">
           <header className="home-ranking-intro">
-            <h1>최고의 학과를<br />가려라!</h1>
+            <h1>최고의 학과를 가려라!</h1>
           </header>
           {(standings.length > 0 || playerStandings.length > 0) && (
             <div className="home-top-ranking-grid">
@@ -54,14 +53,6 @@ export default async function HomePage() {
             </div>
           )}
         </section>
-        {standings.length === 0 && playerStandings.length === 0 && (
-          <section className="section-block">
-            <RetroCard className="home-empty-card">
-              <SeryongMascot className="empty-state-mascot" sizes="110px" eager />
-              <p>아직 등록된 게임 기록이 없습니다.</p>
-            </RetroCard>
-          </section>
-        )}
         <section className="section-block home-all-games-section" id="game-rankings">
           <div className="section-heading">
             <div>
