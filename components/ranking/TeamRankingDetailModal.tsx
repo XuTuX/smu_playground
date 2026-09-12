@@ -50,7 +50,7 @@ export function TeamRankingDetailModal({
             </div>
             <div>
               <h2 id="team-modal-title" className="text-xl sm:text-2xl font-black text-stone-900">
-                팀게임 순위
+                팀 순위
               </h2>
             </div>
           </div>

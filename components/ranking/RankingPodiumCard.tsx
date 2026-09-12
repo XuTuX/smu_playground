@@ -7,12 +7,6 @@ export type PodiumItem = {
   primaryText: string;
   subText?: string;
   score: number;
-  gameScores?: {
-    gameId: string;
-    gameName: string;
-    emoji: string;
-    score: number;
-  }[];
 };
 
 type CardTheme = "yellow" | "sky" | "mint";
@@ -131,20 +125,6 @@ export function RankingPodiumCard({
                   <b className="text-sm sm:text-base font-extrabold text-stone-700 my-1 sm:my-1.5">
                     {second.score.toLocaleString("ko-KR")}점
                   </b>
-                  {second.gameScores && second.gameScores.length > 0 && (
-                    <div className="w-full mt-2 sm:mt-2.5 pt-2 border-t border-stone-100 flex items-center justify-center gap-1 flex-wrap">
-                      {second.gameScores.map((game) => (
-                        <span
-                          key={game.gameId}
-                          className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg bg-stone-50 border border-stone-200/70 text-sm font-bold text-stone-700"
-                          title={`${game.gameName}: ${game.score.toLocaleString("ko-KR")}점`}
-                        >
-                          <span aria-hidden="true">{game.emoji}</span>
-                          <b className="font-black text-stone-900">{game.score.toLocaleString("ko-KR")}점</b>
-                        </span>
-                      ))}
-                    </div>
-                  )}
                 </>
               ) : (
                 <div className="flex flex-col items-center justify-center py-1">
@@ -184,20 +164,6 @@ export function RankingPodiumCard({
                   <b className="text-base sm:text-lg font-black text-amber-700 my-1 sm:my-1.5">
                     {first.score.toLocaleString("ko-KR")}점
                   </b>
-                  {first.gameScores && first.gameScores.length > 0 && (
-                    <div className="w-full mt-2 sm:mt-2.5 pt-2 border-t border-stone-100 flex items-center justify-center gap-1 flex-wrap">
-                      {first.gameScores.map((game) => (
-                        <span
-                          key={game.gameId}
-                          className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg bg-stone-50 border border-stone-200/70 text-sm font-bold text-stone-700"
-                          title={`${game.gameName}: ${game.score.toLocaleString("ko-KR")}점`}
-                        >
-                          <span aria-hidden="true">{game.emoji}</span>
-                          <b className="font-black text-stone-900">{game.score.toLocaleString("ko-KR")}점</b>
-                        </span>
-                      ))}
-                    </div>
-                  )}
                 </>
               ) : (
                 <div className="flex flex-col items-center justify-center py-1">
@@ -237,20 +203,6 @@ export function RankingPodiumCard({
                   <b className="text-sm sm:text-base font-extrabold text-stone-700 my-1 sm:my-1.5">
                     {third.score.toLocaleString("ko-KR")}점
                   </b>
-                  {third.gameScores && third.gameScores.length > 0 && (
-                    <div className="w-full mt-2 sm:mt-2.5 pt-2 border-t border-stone-100 flex items-center justify-center gap-1 flex-wrap">
-                      {third.gameScores.map((game) => (
-                        <span
-                          key={game.gameId}
-                          className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg bg-stone-50 border border-stone-200/70 text-sm font-bold text-stone-700"
-                          title={`${game.gameName}: ${game.score.toLocaleString("ko-KR")}점`}
-                        >
-                          <span aria-hidden="true">{game.emoji}</span>
-                          <b className="font-black text-stone-900">{game.score.toLocaleString("ko-KR")}점</b>
-                        </span>
-                      ))}
-                    </div>
-                  )}
                 </>
               ) : (
                 <div className="flex flex-col items-center justify-center py-1">

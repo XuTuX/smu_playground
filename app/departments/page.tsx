@@ -4,7 +4,7 @@ import { AllDepartmentsRankingView } from "@/components/ranking/AllDepartmentsRa
 import { getAllScores } from "@/lib/score-store";
 import { getDepartmentStandings } from "@/lib/ranking";
 
-export const metadata: Metadata = { title: "학과 순위 - SMU 놀이터" };
+export const metadata: Metadata = { title: "학과 순위" };
 export const dynamic = "force-dynamic";
 
 export default async function DepartmentsPage() {

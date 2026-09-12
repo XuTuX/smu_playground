@@ -25,7 +25,7 @@ export function AllTeamsRankingView({
       <header className="p-5 sm:p-8 rounded-3xl bg-[#EAF8F1] shadow-sm mb-8 overflow-hidden">
         <div className="mb-4">
           <h1 className="text-2xl sm:text-4xl font-black text-stone-900 tracking-tight">
-            전체 팀게임 순위
+            전체 팀 순위
           </h1>
         </div>
 

@@ -59,7 +59,6 @@ export function HomePodiumSection({
       primaryText: standing.nickname,
       subText: standing.departmentName,
       score: standing.totalScore,
-      gameScores: standing.gameScores,
     }));
 
   // Convert Team Standings to Podium Items (only actual records)
@@ -70,26 +69,27 @@ export function HomePodiumSection({
       primaryText: standing.teamName,
       subText: standing.departmentName,
       score: standing.score,
-      gameScores: standing.gameScores,
     }));
 
   return (
     <section className="mt-4 sm:mt-6" aria-label="청룡체전 핵심 순위">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6 items-stretch">
-        {/* 1. 학과 순위 카드 */}
-        <RankingPodiumCard
-          theme="yellow"
-          title="학과 순위"
-          icon={
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-              <path d="M6 12v5c3 3 9 3 12 0v-5" />
-            </svg>
-          }
-          items={deptItems}
-          href="/departments"
-          ariaLabel="학과 순위 상세 보기"
-        />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6 items-stretch">
+        {/* 1. 학과 순위 카드 - 상단 전체 너비 */}
+        <div className="lg:col-span-2">
+          <RankingPodiumCard
+            theme="yellow"
+            title="학과 순위"
+            icon={
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                <path d="M6 12v5c3 3 9 3 12 0v-5" />
+              </svg>
+            }
+            items={deptItems}
+            href="/departments"
+            ariaLabel="학과 순위 상세 보기"
+          />
+        </div>
 
         {/* 2. 개인 순위 카드 */}
         <RankingPodiumCard
@@ -103,13 +103,13 @@ export function HomePodiumSection({
           }
           items={playerItems}
           href="/ranking"
-          ariaLabel="개인 순위 및 게임별 점수 구성 보기"
+          ariaLabel="개인 순위 상세 보기"
         />
 
-        {/* 3. 팀게임 순위 카드 */}
+        {/* 3. 팀 순위 카드 */}
         <RankingPodiumCard
           theme="mint"
-          title="팀게임 순위"
+          title="팀 순위"
           icon={
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -120,7 +120,7 @@ export function HomePodiumSection({
           }
           items={teamItems}
           href="/teams"
-          ariaLabel="팀게임 순위 보기"
+          ariaLabel="팀 순위 보기"
         />
       </div>
 

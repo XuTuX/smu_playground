@@ -4,7 +4,7 @@ import { AllPlayersRankingView } from "@/components/ranking/AllPlayersRankingVie
 import { getAllScores } from "@/lib/score-store";
 import { getDetailedPlayerStandings } from "@/lib/ranking";
 
-export const metadata: Metadata = { title: "개인 순위 - SMU 놀이터" };
+export const metadata: Metadata = { title: "개인 순위" };
 export const dynamic = "force-dynamic";
 
 export default async function RankingPage() {
