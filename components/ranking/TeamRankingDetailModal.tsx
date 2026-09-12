@@ -39,11 +39,11 @@ export function TeamRankingDetailModal({
       aria-labelledby="team-modal-title"
     >
       <div
-        className="relative w-full max-w-2xl max-h-[85vh] bg-[#FFFDF7] border-2 border-stone-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+        className="relative w-full max-w-2xl max-h-[85vh] bg-[#FFFDF7] rounded-3xl shadow-2xl flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-5 sm:p-6 border-b border-stone-200 bg-white">
+        <div className="flex items-center justify-between p-5 sm:p-6 border-b border-stone-100 bg-white">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
               👥
@@ -57,7 +57,7 @@ export function TeamRankingDetailModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-10 h-10 rounded-full bg-white border border-stone-200 text-stone-600 hover:text-stone-900 hover:bg-stone-50 flex items-center justify-center font-bold text-lg transition-colors"
+            className="w-10 h-10 rounded-full bg-white text-stone-600 hover:text-stone-900 hover:bg-stone-50 flex items-center justify-center font-bold text-lg transition-colors shadow-sm"
             aria-label="닫기"
           >
             ✕
@@ -74,21 +74,21 @@ export function TeamRankingDetailModal({
             standings.map((team) => {
               const rankColor =
                 team.rank === 1
-                  ? "bg-amber-100 text-amber-800 border-amber-300"
+                  ? "bg-amber-100 text-amber-800"
                   : team.rank === 2
-                    ? "bg-slate-100 text-slate-800 border-slate-300"
+                    ? "bg-slate-100 text-slate-800"
                     : team.rank === 3
-                      ? "bg-orange-100 text-orange-800 border-orange-300"
-                      : "bg-stone-100 text-stone-600 border-stone-200";
+                      ? "bg-orange-100 text-orange-800"
+                      : "bg-stone-100 text-stone-600";
 
               return (
                 <div
                   key={team.id}
-                  className="flex items-center justify-between p-4 bg-white rounded-2xl border border-stone-200/80 shadow-sm"
+                  className="flex items-center justify-between p-4 bg-white rounded-2xl shadow-sm"
                 >
                   <div className="flex items-center gap-3.5 min-w-0">
                     <span
-                      className={`w-9 h-9 rounded-xl border flex items-center justify-center font-black text-sm shrink-0 ${rankColor}`}
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm shrink-0 ${rankColor}`}
                     >
                       {team.rank}위
                     </span>

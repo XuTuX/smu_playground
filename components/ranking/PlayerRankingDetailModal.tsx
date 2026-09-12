@@ -52,11 +52,11 @@ export function PlayerRankingDetailModal({
       aria-labelledby="player-modal-title"
     >
       <div
-        className="relative w-full max-w-2xl max-h-[85vh] bg-[#FFFDF7] border-2 border-stone-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+        className="relative w-full max-w-2xl max-h-[85vh] bg-[#FFFDF7] rounded-3xl shadow-2xl flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Top Bar */}
-        <div className="flex items-center justify-between p-5 sm:p-6 border-b border-stone-200 bg-white">
+        <div className="flex items-center justify-between p-5 sm:p-6 border-b border-stone-100 bg-white">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
               🏆
@@ -70,7 +70,7 @@ export function PlayerRankingDetailModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-10 h-10 rounded-full bg-white border border-stone-200 text-stone-600 hover:text-stone-900 hover:bg-stone-50 flex items-center justify-center font-bold text-lg transition-colors"
+            className="w-10 h-10 rounded-full bg-white text-stone-600 hover:text-stone-900 hover:bg-stone-50 flex items-center justify-center font-bold text-lg transition-colors shadow-sm"
             aria-label="닫기"
           >
             ✕
@@ -78,7 +78,7 @@ export function PlayerRankingDetailModal({
         </div>
 
         {/* List of Players with Expandable Game Breakdowns */}
-        <div className="overflow-y-auto p-4 sm:p-6 space-y-3 divide-y divide-stone-100">
+        <div className="overflow-y-auto p-4 sm:p-6 space-y-3">
           {standings.length === 0 ? (
             <div className="py-12 text-center text-stone-500 font-semibold text-base">
               등록된 참가자 기록이 없습니다.
@@ -88,17 +88,17 @@ export function PlayerRankingDetailModal({
               const isExpanded = expandedPlayerIds.has(player.id);
               const rankColor =
                 player.rank === 1
-                  ? "bg-amber-100 text-amber-800 border-amber-300"
+                  ? "bg-amber-100 text-amber-800"
                   : player.rank === 2
-                    ? "bg-slate-100 text-slate-800 border-slate-300"
+                    ? "bg-slate-100 text-slate-800"
                     : player.rank === 3
-                      ? "bg-orange-100 text-orange-800 border-orange-300"
-                      : "bg-stone-100 text-stone-600 border-stone-200";
+                      ? "bg-orange-100 text-orange-800"
+                      : "bg-stone-100 text-stone-600";
 
               return (
                 <div
                   key={player.id}
-                  className="pt-3 first:pt-0 bg-white rounded-2xl p-4 border border-stone-200/80 shadow-sm transition-all"
+                  className="bg-white rounded-2xl p-4 shadow-sm transition-all"
                 >
                   <div
                     className="flex items-center justify-between gap-3 cursor-pointer"
@@ -106,7 +106,7 @@ export function PlayerRankingDetailModal({
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <span
-                        className={`w-9 h-9 rounded-xl border flex items-center justify-center font-black text-sm shrink-0 ${rankColor}`}
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm shrink-0 ${rankColor}`}
                       >
                         {player.rank}위
                       </span>
@@ -149,7 +149,7 @@ export function PlayerRankingDetailModal({
                         {player.gameScores.map((game) => (
                           <div
                             key={game.gameId}
-                            className="flex items-center justify-between p-2.5 rounded-xl bg-stone-50 border border-stone-100"
+                            className="flex items-center justify-between p-2.5 rounded-xl bg-stone-50"
                           >
                             <span className="text-sm font-bold text-stone-700 truncate mr-2">
                               {game.emoji} {game.gameName}

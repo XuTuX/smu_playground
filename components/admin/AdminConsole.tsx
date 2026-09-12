@@ -3,18 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { departments } from "@/data/departments";
 import { games } from "@/data/games";
+import type { AdminSnapshot } from "@/lib/admin-snapshot";
 import type { AdminScoreRecord } from "@/lib/types";
-
-type Snapshot = {
-  summary: { playCount: number; champion: string };
-  sync: {
-    mode: "mock" | "supabase";
-    state: "mock" | "ready" | "error";
-    totalRows: number;
-    error: string | null;
-  };
-  records: AdminScoreRecord[];
-};
 
 type ParticipantLookupState = "idle" | "loading" | "new" | "found" | "error";
 
@@ -64,12 +54,15 @@ function getRecordIdentifier(record: AdminScoreRecord) {
   return formatPhone(record.participantPhone);
 }
 
-export function AdminConsole() {
+export function AdminConsole({
+  initialSnapshot,
+}: {
+  initialSnapshot: AdminSnapshot | null;
+}) {
   const [password, setPassword] = useState("");
-  const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
+  const [snapshot, setSnapshot] = useState<AdminSnapshot | null>(initialSnapshot);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [busyScoreId, setBusyScoreId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<EditForm | null>(null);
@@ -118,25 +111,23 @@ export function AdminConsole() {
   const load = useCallback(async () => {
     try {
       const response = await fetch("/api/admin/snapshot", { cache: "no-store" });
+      const body = (await response.json()) as AdminSnapshot & { error?: string };
       if (response.ok) {
-        setSnapshot((await response.json()) as Snapshot);
+        setSnapshot(body);
         return;
       }
 
-      if (response.status === 401) setSnapshot(null);
+      if (response.status === 401) {
+        setSnapshot(null);
+      } else {
+        setError(body.error ?? "관리자 정보를 불러오지 못했습니다.");
+      }
     } catch {
       setError("관리자 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.");
-    } finally {
-      setLoading(false);
     }
   }, []);
 
   const hasSnapshot = snapshot !== null;
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => void load(), 0);
-    return () => window.clearTimeout(timer);
-  }, [load]);
 
   useEffect(() => {
     if (!hasSnapshot) return;
@@ -362,8 +353,6 @@ export function AdminConsole() {
       setError("로그아웃 요청에 실패했습니다. 잠시 후 다시 시도해주세요.");
     }
   };
-
-  if (loading) return <div className="admin-loading">관리자 정보를 확인하고 있습니다.</div>;
 
   if (!snapshot) {
     return (
