@@ -25,9 +25,10 @@
 - `departments`: 학과 기준 정보
 - `games`: 게임, 최대 점수, 활성 상태
 - `students`: 학번, 닉네임, 학과. 학번은 unique입니다.
-- `scores`: 학생·게임별 최고 점수. `(student_id, game_id)`가 unique입니다.
+- `scores`: 학생·게임별 최고 점수. `(student_id, game_id)`가 unique이며 팀전은 `team_name`을 별도로 저장합니다. `deleted_at`이 있는 기록은 공개·관리 목록에서 제외됩니다.
+- `score_audit_log`: 점수 생성·수정·삭제·복원 전후 값을 보관하는 운영 감사 로그
 
-`upsert_admin_score` 함수는 학번·게임 단위 advisory transaction lock을 사용합니다. 동시 요청이 와도 신규 학생 생성과 최고 점수 비교·갱신이 하나의 트랜잭션에서 순서대로 처리됩니다.
+`upsert_admin_score` 함수는 학번·게임 단위 advisory transaction lock을 사용합니다. 동시 요청이 와도 신규 학생 생성과 최고 점수 비교·갱신이 하나의 트랜잭션에서 순서대로 처리됩니다. 삭제된 동일 기록을 다시 등록하면 새 행을 만들지 않고 복원합니다.
 
 ## 보안
 
@@ -36,7 +37,9 @@
 - `service_role`만 테이블과 `upsert_admin_score` 함수를 사용합니다.
 - DB 함수는 `SECURITY INVOKER`로 실행되며 `search_path` 고정과 입력값 검증을 적용합니다.
 - 닉네임, 학번, 점수 범위는 API와 DB 양쪽에서 검증합니다.
+- 관리자 변경 API는 HttpOnly·SameSite 쿠키 외에도 same-origin 검사와 요청 횟수 제한을 적용합니다.
+- 운영 환경에서는 관리자 비밀번호와 세션 비밀키에 안전하지 않은 기본값을 제공하지 않습니다.
 
 ## 마이그레이션
 
-`supabase/migrations/20260908065355_admin_student_scores.sql`이 기준 데이터, RLS, 권한, 점수 등록 함수를 포함합니다.
+`supabase/migrations/20260908065355_admin_student_scores.sql`이 기준 데이터, RLS, 권한을 포함하며 이후 마이그레이션이 관리자 수정·삭제와 팀전·감사 로그를 확장합니다. 파일명 순서대로 모두 적용해야 합니다.

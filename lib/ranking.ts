@@ -11,37 +11,32 @@ import type {
 export function getDepartmentStandings(
   scores: ScoreRecord[],
 ): DepartmentStanding[] {
-  const totals = new Map<
-    string,
-    { totalScore: number; players: Set<string> }
-  >();
+  const totals = new Map<string, { totalScore: number; players: Set<string> }>();
+  const scoresByDepartmentAndGame = new Map<string, ScoreRecord[]>();
 
   for (const department of departments) {
     totals.set(department.id, { totalScore: 0, players: new Set() });
   }
 
-  for (const game of games) {
-    for (const department of departments) {
-      const departmentGameScores = scores
-        .filter(
-          (score) =>
-            score.gameId === game.id &&
-            score.departmentId === department.id,
-        )
-        .sort((a, b) => b.score - a.score || a.createdAt.localeCompare(b.createdAt))
-        .slice(0, 5);
+  for (const score of scores) {
+    const entry = totals.get(score.departmentId);
+    if (!entry || !getGame(score.gameId)?.isActive) continue;
 
-      const entry = totals.get(department.id);
-      if (!entry) continue;
-      entry.totalScore += departmentGameScores.reduce(
-        (sum, score) => sum + score.score,
-        0,
-      );
-    }
+    entry.players.add(score.playerId ?? `${score.departmentId}:${score.nickname}`);
+    const key = `${score.departmentId}:${score.gameId}`;
+    const bucket = scoresByDepartmentAndGame.get(key) ?? [];
+    bucket.push(score);
+    scoresByDepartmentAndGame.set(key, bucket);
   }
 
-  for (const score of scores) {
-    totals.get(score.departmentId)?.players.add(score.nickname);
+  for (const [key, bucket] of scoresByDepartmentAndGame) {
+    const departmentId = key.slice(0, key.lastIndexOf(":"));
+    const entry = totals.get(departmentId);
+    if (!entry) continue;
+    entry.totalScore += bucket
+      .sort((a, b) => b.score - a.score || a.createdAt.localeCompare(b.createdAt))
+      .slice(0, 5)
+      .reduce((sum, score) => sum + score.score, 0);
   }
 
   return departments
@@ -148,7 +143,7 @@ export function getOverallPlayerStandings(
 
   return limited.map(({ player, totalScore }, index) => ({
     ...player.latestScore,
-    id: `overall:${player.departmentId}:${player.nickname}`,
+    id: `overall:${player.latestScore.playerId ?? `${player.departmentId}:${player.nickname}`}`,
     gameId: "overall",
     score: totalScore,
     rank: index + 1,

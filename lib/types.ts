@@ -40,6 +40,8 @@ export type ScoreRecord = {
 
 export type AdminScoreRecord = ScoreRecord & {
   studentNumber: string;
+  studentNickname: string;
+  teamName: string | null;
 };
 
 export type GameSession = {

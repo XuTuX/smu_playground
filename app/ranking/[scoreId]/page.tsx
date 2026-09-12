@@ -39,8 +39,7 @@ export default async function ScoreDetailPage({
   if (!game || !department) notFound();
 
   const overallRank = getOverallPlayerStandings(scores).find(
-    ({ departmentId, nickname }) =>
-      departmentId === score.departmentId && nickname === score.nickname,
+    ({ playerId }) => playerId === score.playerId,
   )?.rank;
   const gameRank = getPlayerStandings(scores, { gameId: score.gameId }).find(
     ({ id }) => id === score.id,

@@ -12,10 +12,10 @@ export function Footer() {
             <p>세명대학교 청룡체전 미니게임 실시간 순위판</p>
           </div>
         </div>
-        <nav className="footer-links" aria-label="바닥글 링크">
-          <Link href="/">홈</Link>
-          <Link href="/departments">학과 순위</Link>
-          <Link href="/ranking">개인·팀 순위</Link>
+        <nav className="footer-links" aria-label="바로가기 링크">
+          <Link href="/">학과 순위</Link>
+          <Link href="/?tab=player">개인 순위</Link>
+          <Link href="/?tab=game">게임별 순위</Link>
         </nav>
       </div>
     </footer>

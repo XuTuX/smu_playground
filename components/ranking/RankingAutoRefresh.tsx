@@ -3,15 +3,22 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export function RankingAutoRefresh({ intervalMs = 5000 }: { intervalMs?: number }) {
+export function RankingAutoRefresh({ intervalMs = 10000 }: { intervalMs?: number }) {
   const router = useRouter();
 
   useEffect(() => {
-    const timer = window.setInterval(() => {
+    const refreshWhenVisible = () => {
       if (document.visibilityState === "visible") router.refresh();
+    };
+    const timer = window.setInterval(() => {
+      refreshWhenVisible();
     }, intervalMs);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
 
-    return () => window.clearInterval(timer);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+    };
   }, [intervalMs, router]);
 
   return null;

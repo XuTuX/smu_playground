@@ -1,6 +1,12 @@
 import { getDepartment } from "@/data/departments";
 import { getGame } from "@/data/games";
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
+
+export function isValidScoreId(value: string) {
+  return UUID_PATTERN.test(value);
+}
+
 export function validateRegistration(input: unknown) {
   if (!input || typeof input !== "object") {
     return { ok: false as const, error: "요청 형식이 올바르지 않습니다." };
@@ -35,12 +41,19 @@ export function validateAdminScore(input: unknown) {
   const studentId = typeof body.student_id === "string" ? body.student_id.trim() : "";
   const game = getGame(gameId);
   const registration = validateRegistration(input);
+  const teamName = typeof body.team_name === "string" ? body.team_name.trim() : "";
   const score = typeof body.score === "number" ? body.score : Number.NaN;
 
   if (!game?.isActive) {
     return { ok: false as const, error: "게임을 선택해주세요." };
   }
   if (!registration.ok) return registration;
+  if (game.rankingMode === "team" && (teamName.length < 2 || teamName.length > 12)) {
+    return { ok: false as const, error: "팀명은 2~12자로 입력해주세요." };
+  }
+  if (game.rankingMode === "team" && /[<>\u0000-\u001f\u007f]/u.test(teamName)) {
+    return { ok: false as const, error: "팀명에 사용할 수 없는 문자가 있습니다." };
+  }
   if (!/^\d{6,12}$/.test(studentId)) {
     return { ok: false as const, error: "학번은 숫자 6~12자리로 입력해주세요." };
   }
@@ -55,6 +68,7 @@ export function validateAdminScore(input: unknown) {
       studentId,
       departmentId: registration.value.departmentId,
       nickname: registration.value.nickname,
+      teamName: game.rankingMode === "team" ? teamName : null,
       score,
     },
   };
@@ -67,18 +81,23 @@ export function validateAdminScoreEdit(input: unknown) {
 
   const body = input as Record<string, unknown>;
   const registration = validateRegistration(input);
+  const gameId = typeof body.game_id === "string" ? body.game_id.trim() : "";
+  const game = getGame(gameId);
   const score = typeof body.score === "number" ? body.score : Number.NaN;
 
+  if (!game?.isActive) {
+    return { ok: false as const, error: "게임 정보를 확인할 수 없습니다." };
+  }
   if (!registration.ok) return registration;
-  if (!Number.isSafeInteger(score) || score < 0 || score > 9999) {
-    return { ok: false as const, error: "점수는 0~9999 정수여야 합니다." };
+  if (!Number.isSafeInteger(score) || score < 0 || score > game.maxScore) {
+    return { ok: false as const, error: `점수는 0~${game.maxScore} 정수여야 합니다.` };
   }
 
   return {
     ok: true as const,
     value: {
       departmentId: registration.value.departmentId,
-      nickname: registration.value.nickname,
+      displayName: registration.value.nickname,
       score,
     },
   };

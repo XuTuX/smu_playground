@@ -1,15 +1,11 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { SeryongMascot } from "@/components/ui/SeryongMascot";
+import { MockDataToggle } from "@/components/ui/MockDataToggle";
+import { isMockModeActive, isMockModeAvailable } from "@/lib/score-store";
 
-export function Header() {
-  const pathname = usePathname();
-
-  const isHome = pathname === "/";
-  const isDepartments = pathname.startsWith("/departments");
-  const isRanking = pathname.startsWith("/ranking");
+export async function Header() {
+  const mockAvailable = isMockModeAvailable();
+  const mockActive = mockAvailable ? await isMockModeActive() : false;
 
   return (
     <header className="site-header">
@@ -25,34 +21,13 @@ export function Header() {
         </Link>
 
         <nav className="header-nav" aria-label="주요 메뉴">
-          <Link
-            href="/"
-            className={`header-nav-link${isHome ? " is-active" : ""}`}
-            aria-current={isHome ? "page" : undefined}
-          >
-            홈
-          </Link>
-          <Link
-            href="/departments"
-            className={`header-nav-link${isDepartments ? " is-active" : ""}`}
-            aria-current={isDepartments ? "page" : undefined}
-          >
-            학과 순위
-          </Link>
-          <Link
-            href="/ranking"
-            className={`header-nav-link${isRanking ? " is-active" : ""}`}
-            aria-current={isRanking ? "page" : undefined}
-          >
-            개인·팀 순위
-          </Link>
+          <Link href="/" className="header-nav-link">대시보드</Link>
+          <Link href="/departments" className="header-nav-link">학과 순위</Link>
+          <Link href="/ranking" className="header-nav-link">참가자 순위</Link>
         </nav>
 
         <div className="header-right">
-          <span className="header-live-badge" title="5초마다 순위가 자동 갱신됩니다">
-            <span className="live-dot" aria-hidden="true" />
-            <span>실시간 반영</span>
-          </span>
+          {mockAvailable && <MockDataToggle initialIsMock={mockActive} />}
         </div>
       </div>
     </header>

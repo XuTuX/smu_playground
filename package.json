@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node --test --experimental-strip-types --import ./tests/register.mjs tests/*.test.mts",
+    "check": "npm run lint && npx tsc --noEmit && npm test && npm run build"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",

@@ -27,6 +27,7 @@ type ManualScoreResponse = {
 
 type EditForm = {
   id: string;
+  gameId: string;
   departmentId: string;
   nickname: string;
   score: string;
@@ -68,6 +69,7 @@ export function AdminConsole() {
     departmentId: activeDepartments[0]?.id ?? "",
     studentId: "",
     nickname: "",
+    teamName: "",
     score: "",
   });
 
@@ -130,7 +132,7 @@ export function AdminConsole() {
             current.studentId === studentId
               ? {
                   ...current,
-                  nickname: selectedGameIsTeam ? current.nickname : (body.student?.nickname ?? ""),
+                  nickname: body.student?.nickname ?? "",
                   departmentId: body.student?.departmentId ?? current.departmentId,
                 }
               : current,
@@ -185,6 +187,7 @@ export function AdminConsole() {
           department_id: manualScore.departmentId,
           student_id: manualScore.studentId,
           nickname: manualScore.nickname,
+          team_name: selectedGameIsTeam ? manualScore.teamName : null,
           score: Number(manualScore.score),
         }),
       });
@@ -201,10 +204,17 @@ export function AdminConsole() {
       } else if (body.status === "kept") {
         setSuccess(`기존 최고 점수 ${body.previousScore}점이 더 높아 순위는 그대로 유지됩니다.`);
       } else {
-        setSuccess(`${manualScore.nickname} ${selectedGameIsTeam ? "팀의" : "학생의"} ${body.score?.score}점을 등록했습니다.`);
+        const displayName = selectedGameIsTeam ? manualScore.teamName : manualScore.nickname;
+        setSuccess(`${displayName} ${selectedGameIsTeam ? "팀의" : "학생의"} ${body.score?.score}점을 등록했습니다.`);
       }
 
-      setManualScore((current) => ({ ...current, studentId: "", nickname: "", score: "" }));
+      setManualScore((current) => ({
+        ...current,
+        studentId: "",
+        nickname: "",
+        teamName: "",
+        score: "",
+      }));
       setStudentLookup("idle");
       await load();
     } catch {
@@ -219,6 +229,7 @@ export function AdminConsole() {
     setSuccess("");
     setEditForm({
       id: record.id,
+      gameId: record.gameId,
       departmentId: record.departmentId,
       nickname: record.nickname,
       score: String(record.score),
@@ -237,6 +248,7 @@ export function AdminConsole() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          game_id: editForm.gameId,
           department_id: editForm.departmentId,
           nickname: editForm.nickname,
           score: Number(editForm.score),
@@ -250,7 +262,7 @@ export function AdminConsole() {
       }
 
       setEditForm(null);
-      setSuccess("점수 기록과 학생 정보를 수정했습니다.");
+      setSuccess("점수 기록을 수정했습니다.");
       await load();
     } catch {
       setError("점수 수정 요청에 실패했습니다. 잠시 후 다시 시도해주세요.");
@@ -335,7 +347,7 @@ export function AdminConsole() {
       </div>
 
       <p className={snapshot.sync.state === "error" ? "form-error" : "form-success"} role="status">
-        {snapshot.sync.mode === "mock" && "개발용 mock 점수 저장소를 사용 중입니다."}
+        {snapshot.sync.mode === "mock" && "샘플 점수 저장소를 사용 중입니다."}
         {snapshot.sync.state === "ready" && `Supabase 연결됨 · 게임별 최고 점수 ${snapshot.sync.totalRows}개`}
         {snapshot.sync.state === "error" && `Supabase 연결 오류${snapshot.sync.error ? ` · ${snapshot.sync.error}` : ""}`}
       </p>
@@ -376,6 +388,7 @@ export function AdminConsole() {
                       gameId: game.id,
                       studentId: "",
                       nickname: "",
+                      teamName: "",
                       score: "",
                     }));
                   }}
@@ -432,7 +445,7 @@ export function AdminConsole() {
             </label>
 
             <label>
-              {selectedGameIsTeam ? "팀명" : "닉네임"}
+              {selectedGameIsTeam ? "대표자 닉네임" : "닉네임"}
               <input
                 type="text"
                 autoComplete="off"
@@ -443,10 +456,29 @@ export function AdminConsole() {
                 onChange={(event) =>
                   setManualScore((current) => ({ ...current, nickname: event.target.value }))
                 }
-                readOnly={!selectedGameIsTeam && studentLookup === "found"}
+                readOnly={studentLookup === "found"}
+                disabled={selectedGameIsTeam && studentLookup === "loading"}
                 required
               />
             </label>
+
+            {selectedGameIsTeam && (
+              <label>
+                팀명
+                <input
+                  type="text"
+                  autoComplete="off"
+                  minLength={2}
+                  maxLength={12}
+                  placeholder="2~12자"
+                  value={manualScore.teamName}
+                  onChange={(event) =>
+                    setManualScore((current) => ({ ...current, teamName: event.target.value }))
+                  }
+                  required
+                />
+              </label>
+            )}
 
             <label>
               점수
@@ -474,14 +506,14 @@ export function AdminConsole() {
             {studentLookup === "found" && (
               <p className="form-success-inline" role="status">
                 {selectedGameIsTeam
-                  ? "✓ 기존 학생의 학과를 불러왔습니다. 팀명을 입력해주세요."
+                  ? "✓ 기존 대표자의 닉네임과 학과를 불러왔습니다. 팀명만 입력해주세요."
                   : "✓ 기존 학생입니다. 닉네임과 학과를 자동으로 불러왔습니다."}
               </p>
             )}
             {studentLookup === "new" && (
               <p className="form-info-inline" role="status">
                 {selectedGameIsTeam
-                  ? "ℹ 처음 등록하는 대표 학번입니다. 학과와 팀명을 입력해주세요."
+                  ? "ℹ 처음 등록하는 대표 학번입니다. 대표자 닉네임·학과·팀명을 입력해주세요."
                   : "ℹ 처음 등록하는 학번입니다. 학과와 닉네임을 입력해주세요."}
               </p>
             )}
@@ -513,7 +545,7 @@ export function AdminConsole() {
           <p>최근 수정 순 · 총 {snapshot.records.length}건</p>
         </div>
         <p className="admin-records-note">
-          닉네임·학과 수정은 같은 학번의 모든 게임 기록에 반영됩니다. 삭제는 선택한 게임 점수만 처리합니다.
+          개인 닉네임·학과 수정은 같은 학번의 개인 기록에 반영됩니다. 팀명은 해당 팀전 기록에만 반영되고, 목록은 최근 200건까지 표시됩니다.
         </p>
 
         {snapshot.records.length === 0 ? (

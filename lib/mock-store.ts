@@ -1,6 +1,7 @@
 import "server-only";
 
 import { mockScores } from "@/data/mock";
+import { getGame } from "@/data/games";
 import { getDepartmentStandings, getPlayerStandings } from "@/lib/ranking";
 import type {
   AdminScoreRecord,
@@ -9,7 +10,7 @@ import type {
   ScoreRecord,
 } from "@/lib/types";
 
-type StoredScoreRecord = ScoreRecord & { studentId?: string };
+type StoredScoreRecord = ScoreRecord & { studentId?: string; teamName?: string | null };
 
 type MockStudent = {
   id: string;
@@ -25,7 +26,7 @@ type MockStore = {
   students: MockStudent[];
 };
 
-const MOCK_SEED_VERSION = 2;
+const MOCK_SEED_VERSION = 3;
 
 declare global {
   var __smuPlaygroundStore: MockStore | undefined;
@@ -88,6 +89,9 @@ export function getAdminScoreRecords(): AdminScoreRecord[] {
         store.students.find(({ id }) => id === score.playerId)?.studentNumber ??
         score.studentId ??
         "-",
+      studentNickname:
+        store.students.find(({ id }) => id === score.playerId)?.nickname ?? score.nickname,
+      teamName: score.teamName ?? null,
     }));
 }
 
@@ -212,6 +216,7 @@ export function createManualScore(input: {
   studentId: string;
   departmentId: string;
   nickname: string;
+  teamName?: string | null;
   score: number;
 }) {
   const store = getStore();
@@ -238,13 +243,18 @@ export function createManualScore(input: {
 
   if (existing) {
     if (input.score <= existing.score) {
+      if (input.teamName) {
+        existing.teamName = input.teamName;
+        existing.nickname = input.teamName;
+      }
       return { status: "kept" as const, previousScore: existing.score, score: toPublicScore(existing) };
     }
 
     const previousScore = existing.score;
     existing.sessionId = sessionId;
     existing.departmentId = student.departmentId;
-    existing.nickname = student.nickname;
+    existing.teamName = input.teamName ?? null;
+    existing.nickname = input.teamName ?? student.nickname;
     existing.score = input.score;
     existing.createdAt = createdAt;
     return { status: "updated" as const, previousScore, score: toPublicScore(existing) };
@@ -257,7 +267,8 @@ export function createManualScore(input: {
     gameId: input.gameId,
     studentId: input.studentId,
     departmentId: student.departmentId,
-    nickname: student.nickname,
+    nickname: input.teamName ?? student.nickname,
+    teamName: input.teamName ?? null,
     score: input.score,
     createdAt,
   };
@@ -276,13 +287,20 @@ export function updateAdminScore(
   const student = store.students.find(({ id }) => id === score.playerId);
   if (!student) return null;
 
+  const isTeam = getGame(score.gameId)?.rankingMode === "team";
   student.departmentId = input.departmentId;
-  student.nickname = input.nickname;
+  if (!isTeam) student.nickname = input.nickname;
   for (const studentScore of store.scores) {
     if (studentScore.playerId === student.id) {
       studentScore.departmentId = input.departmentId;
-      studentScore.nickname = input.nickname;
+      if (!getGame(studentScore.gameId) || getGame(studentScore.gameId)?.rankingMode !== "team") {
+        studentScore.nickname = student.nickname;
+      }
     }
+  }
+  if (isTeam) {
+    score.teamName = input.nickname;
+    score.nickname = input.nickname;
   }
   score.score = input.score;
   score.createdAt = new Date().toISOString();
