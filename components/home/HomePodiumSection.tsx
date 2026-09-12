@@ -59,6 +59,7 @@ export function HomePodiumSection({
       primaryText: standing.nickname,
       subText: standing.departmentName,
       score: standing.totalScore,
+      gameScores: standing.gameScores,
     }));
 
   // Convert Team Standings to Podium Items (only actual records)
@@ -69,6 +70,7 @@ export function HomePodiumSection({
       primaryText: standing.teamName,
       subText: standing.departmentName,
       score: standing.score,
+      gameScores: standing.gameScores,
     }));
 
   return (

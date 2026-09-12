@@ -14,12 +14,13 @@ export function AllTeamsRankingView({
       primaryText: s.teamName,
       subText: s.departmentName,
       score: s.score,
+      gameScores: s.gameScores,
     }));
 
   const remainingStandings = standings.filter((s) => s.rank > 3);
 
   return (
-    <div className="py-6 sm:py-10">
+    <div className="w-full py-6 sm:py-10">
       {/* Hero Header with Top 1, 2, 3 Podium */}
       <header className="p-5 sm:p-8 rounded-3xl bg-[#EAF8F1] shadow-sm mb-8 overflow-hidden">
         <div className="mb-4">
@@ -28,7 +29,7 @@ export function AllTeamsRankingView({
           </h1>
         </div>
 
-        {/* Top 3 Podium */}
+        {/* Top 3 Podium with individual game breakdowns */}
         <TopThreePodium items={topThreeItems} theme="mint" />
       </header>
 

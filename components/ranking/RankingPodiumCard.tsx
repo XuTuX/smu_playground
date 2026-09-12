@@ -7,6 +7,12 @@ export type PodiumItem = {
   primaryText: string;
   subText?: string;
   score: number;
+  gameScores?: {
+    gameId: string;
+    gameName: string;
+    emoji: string;
+    score: number;
+  }[];
 };
 
 type CardTheme = "yellow" | "sky" | "mint";
@@ -98,27 +104,47 @@ export function RankingPodiumCard({
       {/* Podium Stage */}
       <div className="relative pb-3 sm:pb-4">
         {/* 3 Podiums Row: 2nd (left), 1st (center), 3rd (right) */}
-        <div className="grid grid-cols-3 items-end gap-1.5 sm:gap-3 pt-2 sm:pt-6">
+        {/* 3 Podiums Row: 2nd (left), 1st (center), 3rd (right) */}
+        <div className="grid grid-cols-[1fr_1.35fr_1fr] items-end gap-1.5 sm:gap-2.5 pt-2 sm:pt-6">
           {/* 2nd Place (Left) */}
           <div className="flex flex-col items-center">
             <div className="mb-1 sm:mb-2 shrink-0">
               <TrophyIcon rank={2} size={48} />
             </div>
             {/* Pedestal Stand */}
-            <div className="w-full bg-white/95 backdrop-blur-sm rounded-t-2xl rounded-b-xl shadow-sm pt-3 pb-2.5 sm:pt-4 sm:pb-3 px-1 sm:px-2 flex flex-col items-center justify-center min-h-[88px] sm:min-h-[104px] text-center">
+            <div className="w-full bg-white/95 backdrop-blur-sm rounded-t-2xl rounded-b-xl shadow-sm py-3.5 sm:py-5 px-1 sm:px-2 flex flex-col items-center justify-center min-h-[88px] sm:min-h-[104px] text-center">
               {second ? (
                 <>
-                  <span className="text-sm sm:text-base font-black text-stone-900 leading-tight line-clamp-2 break-keep-all text-center tracking-tight">
+                  <div className="flex items-center justify-center gap-1 flex-wrap mb-1.5 sm:mb-2">
+                    <span className="text-sm font-black text-slate-700 bg-slate-100 px-1.5 py-0.2 rounded-md">
+                      2위
+                    </span>
+                    {second.subText && (
+                      <span className="text-sm font-bold text-stone-500 truncate max-w-[90px] sm:max-w-[120px]">
+                        {second.subText}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-sm sm:text-base font-black text-stone-900 leading-tight line-clamp-1 break-keep-all text-center tracking-tight">
                     {second.primaryText}
                   </span>
-                  {second.subText && (
-                    <span className="text-sm font-semibold text-stone-500 mt-0.5 line-clamp-1 w-full px-0.5">
-                      {second.subText}
-                    </span>
-                  )}
-                  <b className="text-sm sm:text-base font-extrabold text-stone-700 mt-1 sm:mt-1.5">
+                  <b className="text-sm sm:text-base font-extrabold text-stone-700 my-1 sm:my-1.5">
                     {second.score.toLocaleString("ko-KR")}점
                   </b>
+                  {second.gameScores && second.gameScores.length > 0 && (
+                    <div className="w-full mt-2 sm:mt-2.5 pt-2 border-t border-stone-100 flex items-center justify-center gap-1 flex-wrap">
+                      {second.gameScores.map((game) => (
+                        <span
+                          key={game.gameId}
+                          className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg bg-stone-50 border border-stone-200/70 text-sm font-bold text-stone-700"
+                          title={`${game.gameName}: ${game.score.toLocaleString("ko-KR")}점`}
+                        >
+                          <span aria-hidden="true">{game.emoji}</span>
+                          <b className="font-black text-stone-900">{game.score.toLocaleString("ko-KR")}점</b>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className="flex flex-col items-center justify-center py-1">
@@ -133,26 +159,45 @@ export function RankingPodiumCard({
             </div>
           </div>
 
-          {/* 1st Place (Center - Tallest) */}
+          {/* 1st Place (Center - Tallest & Wider) */}
           <div className="flex flex-col items-center -mt-2 sm:-mt-4 z-10">
             <div className="mb-1 sm:mb-2 shrink-0">
               <TrophyIcon rank={1} size={58} />
             </div>
             {/* Pedestal Stand (Tallest) */}
-            <div className="w-full bg-white rounded-t-2xl rounded-b-xl shadow-md pt-3.5 pb-2.5 sm:pt-5 sm:pb-3.5 px-1 sm:px-2 flex flex-col items-center justify-center min-h-[102px] sm:min-h-[120px] text-center">
+            <div className="w-full bg-white rounded-t-2xl rounded-b-xl shadow-md py-4 sm:py-6 px-1.5 sm:px-2.5 flex flex-col items-center justify-center min-h-[102px] sm:min-h-[120px] text-center">
               {first ? (
                 <>
-                  <span className="text-base sm:text-lg font-black text-stone-950 leading-tight line-clamp-2 break-keep-all text-center tracking-tight">
+                  <div className="flex items-center justify-center gap-1.5 flex-wrap mb-1.5 sm:mb-2">
+                    <span className="text-sm font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md">
+                      1위
+                    </span>
+                    {first.subText && (
+                      <span className="text-sm font-bold text-stone-500 truncate max-w-[120px] sm:max-w-[160px]">
+                        {first.subText}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-base sm:text-lg font-black text-stone-950 leading-tight line-clamp-1 break-keep-all text-center tracking-tight">
                     {first.primaryText}
                   </span>
-                  {first.subText && (
-                    <span className="text-sm font-bold text-stone-600 mt-0.5 line-clamp-1 w-full px-0.5">
-                      {first.subText}
-                    </span>
-                  )}
-                  <b className="text-base sm:text-lg font-black text-amber-700 mt-1 sm:mt-1.5">
+                  <b className="text-base sm:text-lg font-black text-amber-700 my-1 sm:my-1.5">
                     {first.score.toLocaleString("ko-KR")}점
                   </b>
+                  {first.gameScores && first.gameScores.length > 0 && (
+                    <div className="w-full mt-2 sm:mt-2.5 pt-2 border-t border-stone-100 flex items-center justify-center gap-1 flex-wrap">
+                      {first.gameScores.map((game) => (
+                        <span
+                          key={game.gameId}
+                          className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg bg-stone-50 border border-stone-200/70 text-sm font-bold text-stone-700"
+                          title={`${game.gameName}: ${game.score.toLocaleString("ko-KR")}점`}
+                        >
+                          <span aria-hidden="true">{game.emoji}</span>
+                          <b className="font-black text-stone-900">{game.score.toLocaleString("ko-KR")}점</b>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className="flex flex-col items-center justify-center py-1">
@@ -173,20 +218,39 @@ export function RankingPodiumCard({
               <TrophyIcon rank={3} size={42} />
             </div>
             {/* Pedestal Stand */}
-            <div className="w-full bg-white/95 backdrop-blur-sm rounded-t-2xl rounded-b-xl shadow-sm pt-2.5 pb-2 sm:pt-3 sm:pb-2.5 px-1 sm:px-2 flex flex-col items-center justify-center min-h-[78px] sm:min-h-[90px] text-center">
+            <div className="w-full bg-white/95 backdrop-blur-sm rounded-t-2xl rounded-b-xl shadow-sm py-3 sm:py-4.5 px-1 sm:px-2 flex flex-col items-center justify-center min-h-[78px] sm:min-h-[90px] text-center">
               {third ? (
                 <>
-                  <span className="text-sm sm:text-base font-black text-stone-900 leading-tight line-clamp-2 break-keep-all text-center tracking-tight">
+                  <div className="flex items-center justify-center gap-1 flex-wrap mb-1.5 sm:mb-2">
+                    <span className="text-sm font-black text-orange-800 bg-orange-100 px-1.5 py-0.2 rounded-md">
+                      3위
+                    </span>
+                    {third.subText && (
+                      <span className="text-sm font-bold text-stone-500 truncate max-w-[90px] sm:max-w-[120px]">
+                        {third.subText}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-sm sm:text-base font-black text-stone-900 leading-tight line-clamp-1 break-keep-all text-center tracking-tight">
                     {third.primaryText}
                   </span>
-                  {third.subText && (
-                    <span className="text-sm font-semibold text-stone-500 mt-0.5 line-clamp-1 w-full px-0.5">
-                      {third.subText}
-                    </span>
-                  )}
-                  <b className="text-sm sm:text-base font-extrabold text-stone-700 mt-1 sm:mt-1.5">
+                  <b className="text-sm sm:text-base font-extrabold text-stone-700 my-1 sm:my-1.5">
                     {third.score.toLocaleString("ko-KR")}점
                   </b>
+                  {third.gameScores && third.gameScores.length > 0 && (
+                    <div className="w-full mt-2 sm:mt-2.5 pt-2 border-t border-stone-100 flex items-center justify-center gap-1 flex-wrap">
+                      {third.gameScores.map((game) => (
+                        <span
+                          key={game.gameId}
+                          className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg bg-stone-50 border border-stone-200/70 text-sm font-bold text-stone-700"
+                          title={`${game.gameName}: ${game.score.toLocaleString("ko-KR")}점`}
+                        >
+                          <span aria-hidden="true">{game.emoji}</span>
+                          <b className="font-black text-stone-900">{game.score.toLocaleString("ko-KR")}점</b>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className="flex flex-col items-center justify-center py-1">

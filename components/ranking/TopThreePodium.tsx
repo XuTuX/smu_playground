@@ -9,6 +9,12 @@ export type TopThreePodiumItem = {
   score: number;
   href?: string;
   badge?: string;
+  gameScores?: {
+    gameId: string;
+    gameName: string;
+    emoji: string;
+    score: number;
+  }[];
 };
 
 type TopThreePodiumProps = {
@@ -45,35 +51,58 @@ export function TopThreePodium({ items, theme = "yellow" }: TopThreePodiumProps)
 
     const content = (
       <div
-        className={`w-full bg-white rounded-t-2xl rounded-b-xl ${shadowClass} pt-3 pb-2.5 sm:pt-4 sm:pb-3 px-1 sm:px-2 flex flex-col items-center justify-center ${minHeightClass} text-center transition-transform duration-150`}
+        className={`w-full bg-white rounded-t-2xl rounded-b-xl ${shadowClass} py-4 sm:py-6 px-2 sm:px-4 flex flex-col items-center justify-center ${minHeightClass} text-center transition-transform duration-150`}
       >
         {item ? (
           <>
-            <span
-              className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-sm font-black mb-1 ${rankLabelColor}`}
-            >
-              <span>{medalEmoji}</span>
-              <span>{rank}위</span>
-            </span>
-            <span
+            {/* Rank badge + Department next to it */}
+            <div className="flex items-center justify-center gap-1.5 flex-wrap mb-2 sm:mb-2.5">
+              <span
+                className={`inline-flex items-center gap-0.5 px-2.5 py-0.5 rounded-full text-sm font-black ${rankLabelColor}`}
+              >
+                <span>{medalEmoji}</span>
+                <span>{rank}위</span>
+              </span>
+              {item.subText && (
+                <span className="text-sm font-bold text-stone-500 truncate max-w-[140px] sm:max-w-[180px]">
+                  {item.subText}
+                </span>
+              )}
+            </div>
+
+            {/* Team name or Nickname only */}
+            <strong
               className={`${
-                isFirst ? "text-base sm:text-lg font-black text-stone-950" : "text-sm sm:text-base font-black text-stone-900"
-              } leading-tight line-clamp-2 break-keep-all tracking-tight`}
+                isFirst ? "text-base sm:text-xl font-black text-stone-950" : "text-sm sm:text-lg font-black text-stone-900"
+              } leading-tight line-clamp-1 break-keep-all tracking-tight my-0.5 sm:my-1`}
             >
               {item.primaryText}
-            </span>
-            {item.subText && (
-              <span className="text-sm font-semibold text-stone-500 mt-0.5 line-clamp-1 w-full px-0.5">
-                {item.subText}
-              </span>
-            )}
+            </strong>
             <b
               className={`${
-                isFirst ? "text-base sm:text-lg font-black text-amber-700" : "text-sm sm:text-base font-extrabold text-stone-800"
-              } mt-1 sm:mt-1.5`}
+                isFirst ? "text-base sm:text-xl font-black text-amber-700" : "text-sm sm:text-base font-extrabold text-stone-800"
+              } mt-1 sm:mt-2 mb-1 sm:mb-1.5`}
             >
               {item.score.toLocaleString("ko-KR")}점
             </b>
+
+            {/* Individual Game Scores in Podium (Icon + Score) */}
+            {item.gameScores && item.gameScores.length > 0 && (
+              <div className="w-full mt-2.5 sm:mt-3.5 pt-2.5 sm:pt-3 border-t border-stone-100 flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap px-1">
+                {item.gameScores.map((game) => (
+                  <span
+                    key={game.gameId}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-stone-50 border border-stone-200/70 text-sm font-bold text-stone-700 shadow-2xs"
+                    title={`${game.gameName}: ${game.score.toLocaleString("ko-KR")}점`}
+                  >
+                    <span className="text-base" aria-hidden="true">{game.emoji}</span>
+                    <b className="font-black text-stone-900">
+                      {game.score.toLocaleString("ko-KR")}점
+                    </b>
+                  </span>
+                ))}
+              </div>
+            )}
           </>
         ) : (
           <div className="flex flex-col items-center justify-center py-1">
@@ -94,8 +123,8 @@ export function TopThreePodium({ items, theme = "yellow" }: TopThreePodiumProps)
     );
 
     const columnClass = isFirst
-      ? "flex flex-col items-center -mt-2 sm:-mt-4 z-10"
-      : "flex flex-col items-center";
+      ? "flex flex-col items-center -mt-2 sm:-mt-4 z-10 w-full"
+      : "flex flex-col items-center w-full";
 
     return (
       <div className={columnClass}>
@@ -118,12 +147,12 @@ export function TopThreePodium({ items, theme = "yellow" }: TopThreePodiumProps)
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto pt-2 pb-1">
-      <div className="grid grid-cols-3 items-end gap-1.5 sm:gap-3">
+    <div className="w-full max-w-3xl sm:max-w-4xl mx-auto py-3 sm:py-6">
+      <div className="grid grid-cols-[1fr_1.35fr_1fr] items-end gap-2 sm:gap-4">
         {/* 2nd Place (Left) */}
         {renderStand(2, second)}
 
-        {/* 1st Place (Center - Tallest) */}
+        {/* 1st Place (Center - Tallest & Wider) */}
         {renderStand(1, first)}
 
         {/* 3rd Place (Right - Lowest) */}
