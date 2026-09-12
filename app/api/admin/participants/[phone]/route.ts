@@ -12,11 +12,9 @@ export async function GET(
   }
 
   const { phone } = await params;
-  const participantKind = new URL(request.url).searchParams.get("kind");
-  if (
-    !/^01[016789]\d{7,8}$/u.test(phone) ||
-    (participantKind !== "individual" && participantKind !== "team")
-  ) {
+  const rawKind = new URL(request.url).searchParams.get("kind");
+  const participantKind = rawKind === "team" ? "team" : rawKind === "individual" ? "individual" : null;
+  if (!/^01[016789]\d{7,8}$/u.test(phone)) {
     return Response.json({ found: false });
   }
 

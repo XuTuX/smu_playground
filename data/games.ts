@@ -2,8 +2,8 @@ import type { Game } from "@/lib/types";
 
 export const games: Game[] = [
   {
-    id: "flappy",
-    slug: "flappy",
+    id: "parking",
+    slug: "parking",
     code: "GAME 01",
     deviceId: "GAME_01",
     emoji: "🚗",
@@ -15,8 +15,8 @@ export const games: Game[] = [
     isActive: true,
   },
   {
-    id: "reaction",
-    slug: "reaction",
+    id: "star",
+    slug: "star",
     code: "GAME 02",
     deviceId: "GAME_02",
     emoji: "⭐",
@@ -28,8 +28,8 @@ export const games: Game[] = [
     isActive: true,
   },
   {
-    id: "dino-run",
-    slug: "dino-run",
+    id: "rope",
+    slug: "rope",
     code: "GAME 03",
     deviceId: "GAME_03",
     emoji: "🏃",
@@ -41,8 +41,8 @@ export const games: Game[] = [
     isActive: true,
   },
   {
-    id: "timing",
-    slug: "timing",
+    id: "memory",
+    slug: "memory",
     code: "GAME 04",
     deviceId: "GAME_04",
     emoji: "🚦",
@@ -54,8 +54,8 @@ export const games: Game[] = [
     isActive: true,
   },
   {
-    id: "rhythm",
-    slug: "rhythm",
+    id: "jump",
+    slug: "jump",
     code: "GAME 05",
     deviceId: "GAME_05",
     emoji: "🕹️",
@@ -68,12 +68,21 @@ export const games: Game[] = [
   },
 ];
 
+const legacyGameIdMap: Record<string, string> = {
+  flappy: "parking",
+  reaction: "star",
+  "dino-run": "rope",
+  timing: "memory",
+  rhythm: "jump",
+};
+
 export function getGame(idOrDevice: string) {
   const normalized = idOrDevice.toUpperCase();
+  const canonicalId = legacyGameIdMap[idOrDevice] ?? idOrDevice;
   return games.find(
     (game) =>
-      game.id === idOrDevice ||
-      game.slug === idOrDevice ||
+      game.id === canonicalId ||
+      game.slug === canonicalId ||
       game.deviceId === normalized,
   );
 }

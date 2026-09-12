@@ -31,6 +31,7 @@ export type ScoreRecord = {
   id: string;
   sessionId: string;
   playerId?: string;
+  participantPhone?: string | null;
   gameId: string;
   departmentId: string;
   nickname: string;

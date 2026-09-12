@@ -8,17 +8,48 @@ export function GameRankingCardSection() {
     string,
     { bg: string; border: string; icon: string; shortName: string }
   > = {
-    reaction: {
+    parking: {
+      bg: "bg-[#FDECEF] hover:bg-[#FCDAE0]",
+      border: "",
+      icon: "🚗",
+      shortName: "주차왕 대작전",
+    },
+    star: {
       bg: "bg-[#FFF7E8] hover:bg-[#FFEFD2]",
       border: "",
       icon: "⭐",
       shortName: "별별 협동작전",
     },
+    rope: {
+      bg: "bg-[#EBF5FE] hover:bg-[#DCEDFD]",
+      border: "",
+      icon: "🏃",
+      shortName: "줄넘기 챌린지",
+    },
+    memory: {
+      bg: "bg-[#F4ECFE] hover:bg-[#EBDEFD]",
+      border: "",
+      icon: "🚦",
+      shortName: "신호등 암기",
+    },
+    jump: {
+      bg: "bg-[#E5F7FE] hover:bg-[#D5F1FD]",
+      border: "",
+      icon: "🕹️",
+      shortName: "직선점프",
+    },
+    // Fallbacks for legacy IDs
     flappy: {
       bg: "bg-[#FDECEF] hover:bg-[#FCDAE0]",
       border: "",
       icon: "🚗",
       shortName: "주차왕 대작전",
+    },
+    reaction: {
+      bg: "bg-[#FFF7E8] hover:bg-[#FFEFD2]",
+      border: "",
+      icon: "⭐",
+      shortName: "별별 협동작전",
     },
     "dino-run": {
       bg: "bg-[#EBF5FE] hover:bg-[#DCEDFD]",
@@ -26,17 +57,17 @@ export function GameRankingCardSection() {
       icon: "🏃",
       shortName: "줄넘기 챌린지",
     },
-    rhythm: {
-      bg: "bg-[#E5F7FE] hover:bg-[#D5F1FD]",
-      border: "",
-      icon: "🕹️",
-      shortName: "직선점프",
-    },
     timing: {
       bg: "bg-[#F4ECFE] hover:bg-[#EBDEFD]",
       border: "",
       icon: "🚦",
       shortName: "신호등 암기",
+    },
+    rhythm: {
+      bg: "bg-[#E5F7FE] hover:bg-[#D5F1FD]",
+      border: "",
+      icon: "🕹️",
+      shortName: "직선점프",
     },
   };
 

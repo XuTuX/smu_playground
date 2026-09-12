@@ -3,7 +3,7 @@ import test from "node:test";
 import { isValidScoreId, validateAdminScore, validateAdminScoreEdit } from "@/lib/validation";
 
 const baseScore = {
-  game_id: "timing",
+  game_id: "memory",
   phone: "010-1234-5678",
   department_id: "ai-computer",
   nickname: "테스터",
@@ -17,12 +17,12 @@ test("개인전 관리자 점수 입력을 검증한다", () => {
 });
 
 test("팀전에는 별도 팀명이 필요하다", () => {
-  const missing = validateAdminScore({ ...baseScore, game_id: "flappy" });
+  const missing = validateAdminScore({ ...baseScore, game_id: "parking" });
   assert.equal(missing.ok, false);
 
   const valid = validateAdminScore({
     ...baseScore,
-    game_id: "flappy",
+    game_id: "parking",
     team_name: "청룡팀",
   });
   assert.equal(valid.ok, true);
@@ -37,7 +37,7 @@ test("개인전과 팀전 모두 올바른 전화번호가 필요하다", () => 
   assert.equal(
     validateAdminScore({
       ...baseScore,
-      game_id: "flappy",
+      game_id: "parking",
       phone: "1234",
       team_name: "청룡팀",
     }).ok,
@@ -47,7 +47,7 @@ test("개인전과 팀전 모두 올바른 전화번호가 필요하다", () => 
 
 test("점수 수정은 해당 게임의 최대 점수를 적용한다", () => {
   const result = validateAdminScoreEdit({
-    game_id: "timing",
+    game_id: "memory",
     department_id: "ai-computer",
     nickname: "테스터",
     score: 10_000,

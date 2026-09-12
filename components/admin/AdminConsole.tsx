@@ -198,16 +198,13 @@ export function AdminConsole({
           return;
         }
         if (body.found && body.participant) {
+          const name = body.participant.displayName ?? "";
           setManualScore((current) =>
             current.phone.replace(/\D/g, "") === rawPhone
               ? {
                   ...current,
-                  nickname: selectedGameIsTeam
-                    ? current.nickname
-                    : body.participant?.displayName ?? "",
-                  teamName: selectedGameIsTeam
-                    ? body.participant?.displayName ?? ""
-                    : current.teamName,
+                  nickname: name,
+                  teamName: name,
                   departmentId: body.participant?.departmentId ?? current.departmentId,
                 }
               : current,

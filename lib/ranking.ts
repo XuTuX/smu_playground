@@ -11,6 +11,12 @@ import type {
   TeamStanding,
 } from "@/lib/types";
 
+function getParticipantKey(score: ScoreRecord): string {
+  if (score.participantPhone) return `phone:${score.participantPhone}`;
+  if (score.playerId) return score.playerId;
+  return `${score.departmentId}:${score.nickname}`;
+}
+
 export function getDepartmentStandings(
   scores: ScoreRecord[],
 ): DepartmentStanding[] {
@@ -25,7 +31,7 @@ export function getDepartmentStandings(
     const entry = totals.get(score.departmentId);
     if (!entry || !getGame(score.gameId)?.isActive) continue;
 
-    entry.players.add(score.playerId ?? `${score.departmentId}:${score.nickname}`);
+    entry.players.add(getParticipantKey(score));
     const key = `${score.departmentId}:${score.gameId}`;
     const bucket = scoresByDepartmentAndGame.get(key) ?? [];
     bucket.push(score);
@@ -105,7 +111,7 @@ export function getOverallPlayerStandings(
       continue;
     }
 
-    const key = score.playerId ?? `${score.departmentId}:${score.nickname}`;
+    const key = getParticipantKey(score);
     const player = players.get(key) ?? {
       departmentId: score.departmentId,
       nickname: score.nickname,
@@ -121,8 +127,10 @@ export function getOverallPlayerStandings(
     ) {
       player.bestByGame.set(score.gameId, score);
     }
-    if (score.createdAt > player.latestScore.createdAt) {
+    if (score.createdAt >= player.latestScore.createdAt) {
       player.latestScore = score;
+      player.nickname = score.nickname;
+      player.departmentId = score.departmentId;
     }
     players.set(key, player);
   }
@@ -175,7 +183,7 @@ export function getDetailedPlayerStandings(
     if (getGame(score.gameId)?.rankingMode === "team") continue;
     if (options.departmentId && score.departmentId !== options.departmentId) continue;
 
-    const key = score.playerId ?? `${score.departmentId}:${score.nickname}`;
+    const key = getParticipantKey(score);
     const player = players.get(key) ?? {
       departmentId: score.departmentId,
       nickname: score.nickname,
@@ -190,8 +198,10 @@ export function getDetailedPlayerStandings(
     ) {
       player.bestByGame.set(score.gameId, score);
     }
-    if (score.createdAt > player.latestScore.createdAt) {
+    if (score.createdAt >= player.latestScore.createdAt) {
       player.latestScore = score;
+      player.nickname = score.nickname;
+      player.departmentId = score.departmentId;
     }
     players.set(key, player);
   }
@@ -257,7 +267,9 @@ export function getTeamStandings(
   for (const s of teamScores) {
     const teamName = (s.teamName || s.nickname || "").trim();
     if (!teamName) continue;
-    const key = s.playerId ?? teamName.toLocaleLowerCase("ko");
+    const key = s.participantPhone
+      ? `phone:${s.participantPhone}`
+      : (s.playerId ?? teamName.toLocaleLowerCase("ko"));
     const existing = teamsMap.get(key) ?? {
       teamName,
       departmentId: s.departmentId,
@@ -272,7 +284,11 @@ export function getTeamStandings(
     ) {
       existing.bestByGame.set(s.gameId, s);
     }
-    if (s.createdAt > existing.createdAt) existing.createdAt = s.createdAt;
+    if (s.createdAt >= existing.createdAt) {
+      existing.createdAt = s.createdAt;
+      existing.teamName = teamName;
+      existing.departmentId = s.departmentId;
+    }
     teamsMap.set(key, existing);
   }
 
@@ -437,7 +453,7 @@ export function getDepartmentGameBreakdown(
 
     const bestByParticipant = new Map<string, ScoreRecord>();
     for (const score of gameDeptScores) {
-      const key = score.playerId ?? score.nickname;
+      const key = getParticipantKey(score);
       const prev = bestByParticipant.get(key);
       if (
         !prev ||

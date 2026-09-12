@@ -99,10 +99,12 @@ export type ScoreSnapshot = {
 function publicScore(row: SupabaseScoreRow): ScoreRecord {
   const team = row.team;
   const student = row.student;
+  const phone = row.team?.representative_phone ?? row.student?.phone_number ?? null;
   return {
     id: row.id,
     sessionId: row.id,
-    playerId: team?.id ?? student?.id,
+    playerId: phone ? `phone:${phone}` : (team?.id ?? student?.id),
+    participantPhone: phone,
     gameId: row.game_id,
     departmentId: team?.department_id ?? student?.department_id ?? "",
     nickname: team?.team_name ?? row.team_name ?? student?.nickname ?? "알 수 없음",
@@ -121,8 +123,8 @@ async function fetchPublicScoreRows() {
     "score",
     "team_name",
     "updated_at",
-    "student:students!scores_student_id_fkey(id,nickname,department_id)",
-    "team:teams!scores_team_id_fkey(id,team_name,department_id)",
+    "student:students!scores_student_id_fkey(id,phone_number,nickname,department_id)",
+    "team:teams!scores_team_id_fkey(id,team_name,representative_phone,department_id)",
   ].join(",");
   return supabaseRest<SupabaseScoreRow[]>(
     `scores?select=${encodeURIComponent(select)}&deleted_at=is.null&order=updated_at.asc`,
@@ -233,27 +235,34 @@ export async function getAdminScoreRecords(): Promise<AdminScoreRecord[]> {
 
 export async function getParticipantProfile(
   phone: string,
-  participantKind: "individual" | "team",
+  participantKind?: "individual" | "team" | null,
 ) {
   if (await isMockModeActive()) {
     return getMockParticipantProfile(phone, participantKind);
   }
   if (!isSupabaseConfigured()) throw new Error("Supabase 환경 변수가 설정되지 않았습니다.");
 
-  const isTeam = participantKind === "team";
-  const table = isTeam ? "teams" : "students";
-  const select = isTeam ? "team_name,department_id" : "nickname,department_id";
-  const phoneColumn = isTeam ? "representative_phone" : "phone_number";
-  const rows = await supabaseRest<SupabaseParticipantRow[]>(
-    `${table}?select=${select}&${phoneColumn}=eq.${encodeURIComponent(phone)}&limit=1`,
-  );
-  const participant = rows[0];
-  if (!participant) return null;
+  const checkKinds: Array<"team" | "individual"> =
+    participantKind === "team" ? ["team", "individual"] : ["individual", "team"];
 
-  return {
-    displayName: isTeam ? participant.team_name ?? "" : participant.nickname ?? "",
-    departmentId: participant.department_id,
-  };
+  for (const kind of checkKinds) {
+    const isTeam = kind === "team";
+    const table = isTeam ? "teams" : "students";
+    const select = isTeam ? "team_name,department_id" : "nickname,department_id";
+    const phoneColumn = isTeam ? "representative_phone" : "phone_number";
+    const rows = await supabaseRest<SupabaseParticipantRow[]>(
+      `${table}?select=${select}&${phoneColumn}=eq.${encodeURIComponent(phone)}&limit=1`,
+    );
+    const participant = rows[0];
+    if (participant) {
+      return {
+        displayName: isTeam ? participant.team_name ?? "" : participant.nickname ?? "",
+        departmentId: participant.department_id,
+      };
+    }
+  }
+
+  return null;
 }
 
 export async function createManualScore(input: {
