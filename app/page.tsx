@@ -1,42 +1,41 @@
-import { MainDashboard } from "@/components/home/MainDashboard";
+import { Suspense } from "react";
+import { FestivalHero } from "@/components/home/FestivalHero";
+import { HomePodiumSection } from "@/components/home/HomePodiumSection";
+import { GameRankingCardSection } from "@/components/home/GameRankingCardSection";
 import { RankingAutoRefresh } from "@/components/ranking/RankingAutoRefresh";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { RetroCard } from "@/components/ui/RetroCard";
 import { getAllScores } from "@/lib/score-store";
-import { getDepartmentStandings, getOverallPlayerStandings } from "@/lib/ranking";
+import {
+  getDepartmentStandings,
+  getDetailedPlayerStandings,
+  getTeamStandings,
+} from "@/lib/ranking";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const scores = await getAllScores();
-  const standings = getDepartmentStandings(scores);
-  const playerStandings = getOverallPlayerStandings(scores);
-  const hasRankings = standings.length > 0 || playerStandings.length > 0;
+  const departmentStandings = getDepartmentStandings(scores);
+  const detailedPlayerStandings = getDetailedPlayerStandings(scores);
+  const teamStandings = getTeamStandings(scores);
 
   return (
-    <div className="home-single-page">
+    <div className="min-h-screen">
       <RankingAutoRefresh />
       <div className="site-shell">
-        <section className="home-top-rankings">
-          <header className="home-ranking-intro">
-            <h1>청룡체전 실시간 순위</h1>
-          </header>
+        {/* Festival Hero Section */}
+        <FestivalHero />
 
-          {hasRankings ? (
-            <MainDashboard
-              standings={standings}
-              playerStandings={playerStandings}
-              scores={scores}
-            />
-          ) : (
-            <RetroCard className="home-empty-card-wrapper">
-              <EmptyState
-                title="아직 등록된 랭킹 기록이 없어요!"
-                description="미니게임에 참여하면 학과와 개인 순위가 이곳에 표시됩니다."
-              />
-            </RetroCard>
-          )}
-        </section>
+        {/* 3 Main Ranking Podiums (Department, Individual, Team) */}
+        <Suspense fallback={<div className="h-64 flex items-center justify-center font-bold text-stone-400">순위 집계 중...</div>}>
+          <HomePodiumSection
+            departmentStandings={departmentStandings}
+            detailedPlayerStandings={detailedPlayerStandings}
+            teamStandings={teamStandings}
+          />
+        </Suspense>
+
+        {/* Separate Game-by-Game Ranking Cards Row */}
+        <GameRankingCardSection />
       </div>
     </div>
   );

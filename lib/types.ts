@@ -36,6 +36,7 @@ export type ScoreRecord = {
   nickname: string;
   score: number;
   createdAt: string;
+  teamName?: string | null;
 };
 
 export type AdminScoreRecord = ScoreRecord & {
@@ -68,6 +69,37 @@ export type PlayerStanding = ScoreRecord & {
   departmentName: string;
   gameName: string;
   gameCode: string;
+};
+
+export type PlayerGameScoreBreakdown = {
+  gameId: string;
+  gameName: string;
+  emoji: string;
+  score: number;
+};
+
+export type DetailedPlayerStanding = {
+  id: string;
+  rank: number;
+  nickname: string;
+  departmentId: string;
+  departmentName: string;
+  totalScore: number;
+  gameCount: number;
+  gameScores: PlayerGameScoreBreakdown[];
+};
+
+export type TeamStanding = {
+  id: string;
+  rank: number;
+  teamName: string;
+  departmentId: string;
+  departmentName: string;
+  gameId: string;
+  gameName: string;
+  emoji: string;
+  score: number;
+  createdAt: string;
 };
 
 export type ActivityItem = {

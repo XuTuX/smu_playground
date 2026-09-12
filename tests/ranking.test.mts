@@ -57,3 +57,31 @@ test("개인 종합 순위는 팀전을 제외하고 게임별 최고 점수를 
   assert.equal(standings[0].score, 190);
   assert.equal(standings[1].score, 150);
 });
+
+test("개인 상세 순위는 각 게임별 점수 구성을 올바르게 반환한다", async () => {
+  const scores = [
+    score("1", "student-a", "timing", "nursing", "민준", 100),
+    score("2", "student-a", "rhythm", "nursing", "민준", 90),
+  ];
+
+  const { getDetailedPlayerStandings } = await import("@/lib/ranking");
+  const detailed = getDetailedPlayerStandings(scores);
+  assert.equal(detailed[0].nickname, "민준");
+  assert.equal(detailed[0].totalScore, 190);
+  assert.equal(detailed[0].gameScores.length, 2);
+  assert.equal(detailed[0].gameScores[0].score, 100);
+});
+
+test("팀 순위는 팀전 게임에서 팀별 최고 점수로 정렬된다", async () => {
+  const scores = [
+    { ...score("1", "student-a", "flappy", "ai-computer", "청춘MAX", 500), teamName: "청춘MAX" },
+    { ...score("2", "student-b", "flappy", "business", "파이널보스", 600), teamName: "파이널보스" },
+  ];
+
+  const { getTeamStandings } = await import("@/lib/ranking");
+  const teamStandings = getTeamStandings(scores);
+  assert.equal(teamStandings[0].teamName, "파이널보스");
+  assert.equal(teamStandings[0].score, 600);
+  assert.equal(teamStandings[1].teamName, "청춘MAX");
+  assert.equal(teamStandings[1].score, 500);
+});

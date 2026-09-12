@@ -4,8 +4,11 @@ import type {
   ActivityItem,
   DashboardData,
   DepartmentStanding,
+  DetailedPlayerStanding,
+  PlayerGameScoreBreakdown,
   PlayerStanding,
   ScoreRecord,
+  TeamStanding,
 } from "@/lib/types";
 
 export function getDepartmentStandings(
@@ -154,6 +157,146 @@ export function getOverallPlayerStandings(
   }));
 }
 
+export function getDetailedPlayerStandings(
+  scores: ScoreRecord[],
+  options: { departmentId?: string; limit?: number } = {},
+): DetailedPlayerStanding[] {
+  const players = new Map<
+    string,
+    {
+      departmentId: string;
+      nickname: string;
+      bestByGame: Map<string, ScoreRecord>;
+      latestScore: ScoreRecord;
+    }
+  >();
+
+  for (const score of scores) {
+    if (getGame(score.gameId)?.rankingMode === "team") continue;
+    if (options.departmentId && score.departmentId !== options.departmentId) continue;
+
+    const key = score.playerId ?? `${score.departmentId}:${score.nickname}`;
+    const player = players.get(key) ?? {
+      departmentId: score.departmentId,
+      nickname: score.nickname,
+      bestByGame: new Map<string, ScoreRecord>(),
+      latestScore: score,
+    };
+    const gameBest = player.bestByGame.get(score.gameId);
+    if (
+      !gameBest ||
+      score.score > gameBest.score ||
+      (score.score === gameBest.score && score.createdAt < gameBest.createdAt)
+    ) {
+      player.bestByGame.set(score.gameId, score);
+    }
+    if (score.createdAt > player.latestScore.createdAt) {
+      player.latestScore = score;
+    }
+    players.set(key, player);
+  }
+
+  const standings: DetailedPlayerStanding[] = [...players.entries()]
+    .map(([key, player]) => {
+      const gameScores: PlayerGameScoreBreakdown[] = games
+        .filter((g) => g.isActive && g.rankingMode !== "team")
+        .map((g) => {
+          const rec = player.bestByGame.get(g.id);
+          return {
+            gameId: g.id,
+            gameName: g.name,
+            emoji: g.emoji,
+            score: rec ? rec.score : 0,
+          };
+        })
+        .filter((gs) => gs.score > 0);
+
+      const totalScore = [...player.bestByGame.values()].reduce((sum, s) => sum + s.score, 0);
+
+      return {
+        id: `player:${key}`,
+        rank: 0,
+        nickname: player.nickname,
+        departmentId: player.departmentId,
+        departmentName: getDepartment(player.departmentId)?.name ?? "알 수 없는 학과",
+        totalScore,
+        gameCount: player.bestByGame.size,
+        gameScores,
+      };
+    })
+    .sort(
+      (a, b) =>
+        b.totalScore - a.totalScore ||
+        b.gameCount - a.gameCount ||
+        a.nickname.localeCompare(b.nickname, "ko"),
+    )
+    .map((standing, index) => ({ ...standing, rank: index + 1 }));
+
+  return options.limit ? standings.slice(0, options.limit) : standings;
+}
+
+export function getTeamStandings(
+  scores: ScoreRecord[],
+  options: { limit?: number } = {},
+): TeamStanding[] {
+  const teamScores = scores.filter((score) => {
+    const game = getGame(score.gameId);
+    return game?.isActive && game.rankingMode === "team";
+  });
+
+  const teamsMap = new Map<
+    string,
+    {
+      teamName: string;
+      departmentId: string;
+      bestScore: number;
+      bestGameId: string;
+      createdAt: string;
+    }
+  >();
+
+  for (const s of teamScores) {
+    const teamName = (s.teamName || s.nickname || "").trim();
+    if (!teamName) continue;
+    const key = `${s.departmentId}:${teamName.toLowerCase()}`;
+    const existing = teamsMap.get(key);
+    if (
+      !existing ||
+      s.score > existing.bestScore ||
+      (s.score === existing.bestScore && s.createdAt < existing.createdAt)
+    ) {
+      teamsMap.set(key, {
+        teamName,
+        departmentId: s.departmentId,
+        bestScore: s.score,
+        bestGameId: s.gameId,
+        createdAt: s.createdAt,
+      });
+    }
+  }
+
+  const standings: TeamStanding[] = [...teamsMap.values()]
+    .map((team) => {
+      const game = getGame(team.bestGameId);
+      return {
+        id: `team:${team.departmentId}:${team.teamName}`,
+        rank: 0,
+        teamName: team.teamName,
+        departmentId: team.departmentId,
+        departmentName: getDepartment(team.departmentId)?.name ?? "알 수 없는 학과",
+        gameId: team.bestGameId,
+        gameName: game?.name ?? "협동 팀전",
+        emoji: game?.emoji ?? "👥",
+        score: team.bestScore,
+        createdAt: team.createdAt,
+      };
+    })
+    .sort((a, b) => b.score - a.score || a.teamName.localeCompare(b.teamName, "ko"))
+    .map((item, index) => ({ ...item, rank: index + 1 }));
+
+  return options.limit ? standings.slice(0, options.limit) : standings;
+}
+
 function getActivities(scores: ScoreRecord[]): ActivityItem[] {
   return [...scores]
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
@@ -228,11 +371,38 @@ export function getDashboardData(scores: ScoreRecord[]): DashboardData {
   };
 }
 
+export type DepartmentGameBreakdownItem = {
+  game: (typeof games)[number];
+  topScores: ScoreRecord[];
+  subtotal: number;
+  departmentRankInGame: number;
+  topPerformer: {
+    nickname: string;
+    score: number;
+  } | null;
+};
+
 export function getDepartmentGameBreakdown(
   scores: ScoreRecord[],
   departmentId: string,
-) {
+): DepartmentGameBreakdownItem[] {
   return games.map((game) => {
+    // 1. Calculate all departments' subtotals for this game to determine rank
+    const deptTotalsForGame = departments
+      .map((dept) => {
+        const deptScoresInGame = scores
+          .filter((s) => s.departmentId === dept.id && s.gameId === game.id)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 5);
+        const subtotal = deptScoresInGame.reduce((sum, s) => sum + s.score, 0);
+        return { departmentId: dept.id, subtotal };
+      })
+      .filter((d) => d.subtotal > 0)
+      .sort((a, b) => b.subtotal - a.subtotal);
+
+    const rankIndex = deptTotalsForGame.findIndex((d) => d.departmentId === departmentId);
+    const departmentRankInGame = rankIndex >= 0 ? rankIndex + 1 : deptTotalsForGame.length + 1;
+
     const topScores = scores
       .filter(
         (score) =>
@@ -240,10 +410,18 @@ export function getDepartmentGameBreakdown(
       )
       .sort((a, b) => b.score - a.score)
       .slice(0, 5);
+
+    const subtotal = topScores.reduce((sum, score) => sum + score.score, 0);
+    const topPerformer = topScores[0]
+      ? { nickname: topScores[0].nickname, score: topScores[0].score }
+      : null;
+
     return {
       game,
       topScores,
-      subtotal: topScores.reduce((sum, score) => sum + score.score, 0),
+      subtotal,
+      departmentRankInGame,
+      topPerformer,
     };
   });
 }

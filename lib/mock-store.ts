@@ -72,6 +72,7 @@ function toPublicScore(score: StoredScoreRecord): ScoreRecord {
     nickname: score.nickname,
     score: score.score,
     createdAt: score.createdAt,
+    teamName: score.teamName ?? null,
   };
 }
 

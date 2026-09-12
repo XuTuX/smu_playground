@@ -100,6 +100,7 @@ function publicScore(row: SupabaseScoreRow): ScoreRecord {
     nickname: row.team_name ?? row.student.nickname,
     score: row.score,
     createdAt: row.updated_at,
+    teamName: row.team_name ?? null,
   };
 }
 
