@@ -110,7 +110,7 @@ export function HomePodiumSection({
             </svg>
           }
           items={playerItems}
-          onClick={() => setIsPlayerModalOpen(true)}
+          href="/ranking"
           ariaLabel="개인 순위 및 게임별 점수 구성 보기"
         />
 
@@ -128,7 +128,7 @@ export function HomePodiumSection({
             </svg>
           }
           items={teamItems}
-          onClick={() => setIsTeamModalOpen(true)}
+          href="/teams"
           ariaLabel="팀게임 순위 목록 보기"
         />
       </div>

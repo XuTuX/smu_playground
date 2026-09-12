@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { getDepartmentStandings, getOverallPlayerStandings } from "@/lib/ranking";
+import { getDepartmentStandings, getOverallPlayerStandings, getTeamStandings } from "@/lib/ranking";
 import type { ScoreRecord } from "@/lib/types";
 
 function score(
@@ -23,14 +23,14 @@ function score(
   };
 }
 
-test("학과 점수는 게임별 상위 5개 기록만 합산한다", () => {
+test("학과 점수는 5개 게임에서 각 학과 1위 기록만 합산한다", () => {
   const scores = [100, 90, 80, 70, 60, 50].map((value, index) =>
     score(String(index), `p${index}`, "timing", "ai-computer", `참가자${index}`, value),
   );
 
   const standing = getDepartmentStandings(scores)[0];
   assert.equal(standing.departmentId, "ai-computer");
-  assert.equal(standing.totalScore, 400);
+  assert.equal(standing.totalScore, 100);
   assert.equal(standing.playerCount, 6);
 });
 
@@ -72,16 +72,17 @@ test("개인 상세 순위는 각 게임별 점수 구성을 올바르게 반환
   assert.equal(detailed[0].gameScores[0].score, 100);
 });
 
-test("팀 순위는 팀전 게임에서 팀별 최고 점수로 정렬된다", async () => {
+test("팀 순위는 같은 팀명의 팀전 3개 최고 점수를 합산한다", () => {
   const scores = [
     { ...score("1", "student-a", "flappy", "ai-computer", "청춘MAX", 500), teamName: "청춘MAX" },
-    { ...score("2", "student-b", "flappy", "business", "파이널보스", 600), teamName: "파이널보스" },
+    { ...score("2", "student-a", "reaction", "ai-computer", "청춘MAX", 400), teamName: "청춘max" },
+    { ...score("3", "student-a", "dino-run", "ai-computer", "청춘MAX", 300), teamName: "청춘MAX" },
+    { ...score("4", "student-b", "flappy", "business", "파이널보스", 600), teamName: "파이널보스" },
   ];
 
-  const { getTeamStandings } = await import("@/lib/ranking");
   const teamStandings = getTeamStandings(scores);
-  assert.equal(teamStandings[0].teamName, "파이널보스");
-  assert.equal(teamStandings[0].score, 600);
-  assert.equal(teamStandings[1].teamName, "청춘MAX");
-  assert.equal(teamStandings[1].score, 500);
+  assert.equal(teamStandings[0].teamName, "청춘MAX");
+  assert.equal(teamStandings[0].score, 1200);
+  assert.equal(teamStandings[0].gameCount, 3);
+  assert.equal(teamStandings[1].score, 600);
 });

@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { DepartmentRanking } from "@/components/ranking/DepartmentRanking";
 import { PlayerRanking } from "@/components/ranking/PlayerRanking";
 import { RankingAutoRefresh } from "@/components/ranking/RankingAutoRefresh";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -8,7 +7,7 @@ import { PressableLink } from "@/components/ui/PressableLink";
 import { RetroCard } from "@/components/ui/RetroCard";
 import { games, getGame } from "@/data/games";
 import { getAllScores } from "@/lib/score-store";
-import { getDepartmentStandings, getPlayerStandings } from "@/lib/ranking";
+import { getPlayerStandings } from "@/lib/ranking";
 
 export function generateStaticParams() {
   return games.map((game) => ({ gameId: game.slug }));
@@ -35,7 +34,6 @@ export default async function GameDetailPage({
   if (!game) notFound();
 
   const gameScores = (await getAllScores()).filter((score) => score.gameId === game.id);
-  const departmentStandings = getDepartmentStandings(gameScores);
   const playerStandings = getPlayerStandings(gameScores);
   const top = playerStandings[0];
 
@@ -75,24 +73,14 @@ export default async function GameDetailPage({
       </header>
 
       {gameScores.length > 0 ? (
-        <div className="game-detail-ranking-grid">
-          <section className="section-block game-ranking-section">
-            <div className="section-heading">
-              <h2>학과 순위</h2>
-            </div>
-            <RetroCard className="game-ranking-card">
-              <DepartmentRanking standings={departmentStandings} limit={departmentStandings.length} />
-            </RetroCard>
-          </section>
-          <section className="section-block game-ranking-section">
-            <div className="section-heading">
-              <h2>{game.rankingMode === "team" ? "팀" : "개인"} 순위</h2>
-            </div>
-            <RetroCard className="game-ranking-card">
-              <PlayerRanking standings={playerStandings} mode={game.rankingMode} />
-            </RetroCard>
-          </section>
-        </div>
+        <section className="section-block game-ranking-section">
+          <div className="section-heading">
+            <h2>{game.rankingMode === "team" ? "팀" : "개인"} 순위</h2>
+          </div>
+          <RetroCard className="game-ranking-card">
+            <PlayerRanking standings={playerStandings} mode={game.rankingMode} />
+          </RetroCard>
+        </section>
       ) : (
         <section className="section-block">
           <RetroCard className="game-empty-card">

@@ -39,23 +39,41 @@ export function validateAdminScore(input: unknown) {
   const body = input as Record<string, unknown>;
   const gameId = typeof body.game_id === "string" ? body.game_id.trim() : "";
   const studentId = typeof body.student_id === "string" ? body.student_id.trim() : "";
+  const representativePhone =
+    typeof body.representative_phone === "string"
+      ? body.representative_phone.replace(/\D/g, "")
+      : "";
   const game = getGame(gameId);
-  const registration = validateRegistration(input);
+  const departmentId =
+    typeof body.department_id === "string" ? body.department_id.trim() : "";
+  const nickname = typeof body.nickname === "string" ? body.nickname.trim() : "";
+  const department = getDepartment(departmentId);
   const teamName = typeof body.team_name === "string" ? body.team_name.trim() : "";
   const score = typeof body.score === "number" ? body.score : Number.NaN;
 
   if (!game?.isActive) {
     return { ok: false as const, error: "게임을 선택해주세요." };
   }
-  if (!registration.ok) return registration;
+  if (!department?.isActive) {
+    return { ok: false as const, error: "활성 학과를 선택해주세요." };
+  }
+  if (game.rankingMode === "individual" && (nickname.length < 2 || nickname.length > 12)) {
+    return { ok: false as const, error: "닉네임은 2~12자로 입력해주세요." };
+  }
+  if (game.rankingMode === "individual" && /[<>\u0000-\u001f\u007f]/u.test(nickname)) {
+    return { ok: false as const, error: "닉네임에 사용할 수 없는 문자가 있습니다." };
+  }
   if (game.rankingMode === "team" && (teamName.length < 2 || teamName.length > 12)) {
     return { ok: false as const, error: "팀명은 2~12자로 입력해주세요." };
   }
   if (game.rankingMode === "team" && /[<>\u0000-\u001f\u007f]/u.test(teamName)) {
     return { ok: false as const, error: "팀명에 사용할 수 없는 문자가 있습니다." };
   }
-  if (!/^\d{6,12}$/.test(studentId)) {
+  if (game.rankingMode === "individual" && !/^\d{6,12}$/.test(studentId)) {
     return { ok: false as const, error: "학번은 숫자 6~12자리로 입력해주세요." };
+  }
+  if (game.rankingMode === "team" && !/^01[016789]\d{7,8}$/.test(representativePhone)) {
+    return { ok: false as const, error: "대표자 전화번호를 숫자 10~11자리로 입력해주세요." };
   }
   if (!Number.isSafeInteger(score) || score < 0 || score > game.maxScore) {
     return { ok: false as const, error: `점수는 0~${game.maxScore} 정수여야 합니다.` };
@@ -65,9 +83,10 @@ export function validateAdminScore(input: unknown) {
     ok: true as const,
     value: {
       gameId: game.id,
-      studentId,
-      departmentId: registration.value.departmentId,
-      nickname: registration.value.nickname,
+      studentId: game.rankingMode === "individual" ? studentId : null,
+      representativePhone: game.rankingMode === "team" ? representativePhone : null,
+      departmentId,
+      nickname: game.rankingMode === "individual" ? nickname : teamName,
       teamName: game.rankingMode === "team" ? teamName : null,
       score,
     },

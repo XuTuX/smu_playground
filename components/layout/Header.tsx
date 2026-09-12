@@ -22,8 +22,8 @@ export async function Header() {
 
         <nav className="header-nav" aria-label="주요 메뉴">
           <Link href="/departments" className="header-nav-link">학과 순위</Link>
-          <Link href="/?modal=player" className="header-nav-link">개인 순위</Link>
-          <Link href="/?modal=team" className="header-nav-link">팀게임 순위</Link>
+          <Link href="/ranking" className="header-nav-link">개인 순위</Link>
+          <Link href="/teams" className="header-nav-link">팀게임 순위</Link>
           <Link href="/#game-rankings" className="header-nav-link">게임별 순위보기</Link>
         </nav>
 

@@ -24,9 +24,14 @@ test("팀전에는 별도 팀명이 필요하다", () => {
     ...baseScore,
     game_id: "flappy",
     team_name: "청룡팀",
+    representative_phone: "010-1234-5678",
   });
   assert.equal(valid.ok, true);
-  if (valid.ok) assert.equal(valid.value.teamName, "청룡팀");
+  if (valid.ok) {
+    assert.equal(valid.value.teamName, "청룡팀");
+    assert.equal(valid.value.representativePhone, "01012345678");
+    assert.equal(valid.value.studentId, null);
+  }
 });
 
 test("점수 수정은 해당 게임의 최대 점수를 적용한다", () => {

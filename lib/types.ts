@@ -37,11 +37,14 @@ export type ScoreRecord = {
   score: number;
   createdAt: string;
   teamName?: string | null;
+  representativePhone?: string | null;
 };
 
 export type AdminScoreRecord = ScoreRecord & {
-  studentNumber: string;
-  studentNickname: string;
+  participantKind: "individual" | "team";
+  studentNumber: string | null;
+  studentNickname: string | null;
+  representativePhone: string | null;
   teamName: string | null;
 };
 
@@ -99,6 +102,8 @@ export type TeamStanding = {
   gameName: string;
   emoji: string;
   score: number;
+  gameCount: number;
+  gameScores: PlayerGameScoreBreakdown[];
   createdAt: string;
 };
 

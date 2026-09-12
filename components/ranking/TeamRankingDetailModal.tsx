@@ -38,7 +38,7 @@ export function TeamRankingDetailModal({
     return (
       t.teamName.toLowerCase().includes(query) ||
       t.departmentName.toLowerCase().includes(query) ||
-      t.gameName.toLowerCase().includes(query)
+      t.gameScores.some(({ gameName }) => gameName.toLowerCase().includes(query))
     );
   });
 
@@ -65,7 +65,7 @@ export function TeamRankingDetailModal({
                 팀게임 순위
               </h2>
               <p className="text-sm font-semibold text-stone-500">
-                협동 팀전 랭킹 (팀명 · 소속 학과 · 게임 · 획득 점수)
+                같은 팀명의 팀게임 3종 최고 점수 합산
               </p>
             </div>
           </div>
@@ -125,7 +125,17 @@ export function TeamRankingDetailModal({
                       <div className="flex items-center gap-2 text-sm font-semibold text-stone-500 truncate">
                         <span>{team.departmentName}</span>
                         <span>·</span>
-                        <span className="text-emerald-700 font-bold">{team.emoji} {team.gameName}</span>
+                        <span className="text-emerald-700 font-bold">{team.gameCount}/3개 게임</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {team.gameScores.map((game) => (
+                          <span
+                            key={game.gameId}
+                            className="px-2 py-1 rounded-lg bg-stone-100 text-sm font-bold text-stone-600"
+                          >
+                            {game.emoji} {game.score.toLocaleString("ko-KR")}점
+                          </span>
+                        ))}
                       </div>
                     </div>
                   </div>

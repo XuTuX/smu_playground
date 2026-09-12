@@ -98,7 +98,7 @@ export default async function DepartmentDetailPage({
             게임별 성적 및 최고 득점자
           </h2>
           <span className="text-xs sm:text-sm font-semibold text-stone-500">
-            상위 5명 기록 합산 기준
+            게임별 학과 1위 기록 합산 기준
           </span>
         </div>
 
@@ -167,11 +167,11 @@ export default async function DepartmentDetailPage({
                       </div>
                     )}
 
-                    {/* Top 5 list inside department */}
+                    {/* Department winner for this game */}
                     {topScores.length > 0 && (
                       <div className="space-y-1.5 pt-1 border-t border-stone-100">
                         <div className="text-sm font-bold text-stone-500 mb-2">
-                          학과 내 상위 랭킹
+                          학과 내 1위 기록
                         </div>
                         {topScores.map((score, idx) => (
                           <div

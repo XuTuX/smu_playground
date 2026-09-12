@@ -38,7 +38,7 @@ export function getDepartmentStandings(
     if (!entry) continue;
     entry.totalScore += bucket
       .sort((a, b) => b.score - a.score || a.createdAt.localeCompare(b.createdAt))
-      .slice(0, 5)
+      .slice(0, 1)
       .reduce((sum, score) => sum + score.score, 0);
   }
 
@@ -249,8 +249,7 @@ export function getTeamStandings(
     {
       teamName: string;
       departmentId: string;
-      bestScore: number;
-      bestGameId: string;
+      bestByGame: Map<string, ScoreRecord>;
       createdAt: string;
     }
   >();
@@ -258,40 +257,57 @@ export function getTeamStandings(
   for (const s of teamScores) {
     const teamName = (s.teamName || s.nickname || "").trim();
     if (!teamName) continue;
-    const key = `${s.departmentId}:${teamName.toLowerCase()}`;
-    const existing = teamsMap.get(key);
+    const key = teamName.toLocaleLowerCase("ko");
+    const existing = teamsMap.get(key) ?? {
+      teamName,
+      departmentId: s.departmentId,
+      bestByGame: new Map<string, ScoreRecord>(),
+      createdAt: s.createdAt,
+    };
+    const gameBest = existing.bestByGame.get(s.gameId);
     if (
-      !existing ||
-      s.score > existing.bestScore ||
-      (s.score === existing.bestScore && s.createdAt < existing.createdAt)
+      !gameBest ||
+      s.score > gameBest.score ||
+      (s.score === gameBest.score && s.createdAt < gameBest.createdAt)
     ) {
-      teamsMap.set(key, {
-        teamName,
-        departmentId: s.departmentId,
-        bestScore: s.score,
-        bestGameId: s.gameId,
-        createdAt: s.createdAt,
-      });
+      existing.bestByGame.set(s.gameId, s);
     }
+    if (s.createdAt > existing.createdAt) existing.createdAt = s.createdAt;
+    teamsMap.set(key, existing);
   }
 
   const standings: TeamStanding[] = [...teamsMap.values()]
     .map((team) => {
-      const game = getGame(team.bestGameId);
+      const gameScores = games
+        .filter((game) => game.isActive && game.rankingMode === "team")
+        .map((game) => ({
+          gameId: game.id,
+          gameName: game.name,
+          emoji: game.emoji,
+          score: team.bestByGame.get(game.id)?.score ?? 0,
+        }));
+      const totalScore = gameScores.reduce((total, game) => total + game.score, 0);
       return {
-        id: `team:${team.departmentId}:${team.teamName}`,
+        id: `team:${team.teamName.toLocaleLowerCase("ko")}`,
         rank: 0,
         teamName: team.teamName,
         departmentId: team.departmentId,
         departmentName: getDepartment(team.departmentId)?.name ?? "알 수 없는 학과",
-        gameId: team.bestGameId,
-        gameName: game?.name ?? "협동 팀전",
-        emoji: game?.emoji ?? "👥",
-        score: team.bestScore,
+        gameId: "team-overall",
+        gameName: "팀게임 3종 합산",
+        emoji: "👥",
+        score: totalScore,
+        gameCount: gameScores.filter(({ score }) => score > 0).length,
+        gameScores,
         createdAt: team.createdAt,
       };
     })
-    .sort((a, b) => b.score - a.score || a.teamName.localeCompare(b.teamName, "ko"))
+    .sort(
+      (a, b) =>
+        b.score - a.score ||
+        b.gameCount - a.gameCount ||
+        a.teamName.localeCompare(b.teamName, "ko"),
+    )
     .map((item, index) => ({ ...item, rank: index + 1 }));
 
   return options.limit ? standings.slice(0, options.limit) : standings;
@@ -393,7 +409,7 @@ export function getDepartmentGameBreakdown(
         const deptScoresInGame = scores
           .filter((s) => s.departmentId === dept.id && s.gameId === game.id)
           .sort((a, b) => b.score - a.score)
-          .slice(0, 5);
+          .slice(0, 1);
         const subtotal = deptScoresInGame.reduce((sum, s) => sum + s.score, 0);
         return { departmentId: dept.id, subtotal };
       })
@@ -409,7 +425,7 @@ export function getDepartmentGameBreakdown(
           score.departmentId === departmentId && score.gameId === game.id,
       )
       .sort((a, b) => b.score - a.score)
-      .slice(0, 5);
+      .slice(0, 1);
 
     const subtotal = topScores.reduce((sum, score) => sum + score.score, 0);
     const topPerformer = topScores[0]
