@@ -307,64 +307,214 @@ export function AdminConsole() {
     return (
       <form className="admin-login" onSubmit={login}>
         <h2>관리자 인증</h2>
-        <label htmlFor="admin-password">비밀번호<input id="admin-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label>
+        <label htmlFor="admin-password">
+          비밀번호
+          <input
+            id="admin-password"
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+          />
+        </label>
         {error && <p className="form-error" role="alert">{error}</p>}
-        <button className="pressable-button pressable-orange" type="submit">관리 화면 열기</button>
+        <button className="pressable-button pressable-orange" type="submit">
+          관리 화면 열기
+        </button>
       </form>
     );
   }
 
   return (
     <div className="admin-dashboard">
-      <div className="admin-toolbar"><span>관리자로 로그인됨</span><button type="button" className="text-button" onClick={logout}>로그아웃</button></div>
+      <div className="admin-toolbar">
+        <span>관리자로 로그인됨</span>
+        <button type="button" className="text-button" onClick={logout}>
+          로그아웃
+        </button>
+      </div>
+
       <p className={snapshot.sync.state === "error" ? "form-error" : "form-success"} role="status">
         {snapshot.sync.mode === "mock" && "개발용 mock 점수 저장소를 사용 중입니다."}
         {snapshot.sync.state === "ready" && `Supabase 연결됨 · 게임별 최고 점수 ${snapshot.sync.totalRows}개`}
         {snapshot.sync.state === "error" && `Supabase 연결 오류${snapshot.sync.error ? ` · ${snapshot.sync.error}` : ""}`}
       </p>
-      <div className="admin-summary"><div><span>등록된 기록</span><strong>{snapshot.summary.playCount}</strong></div><div><span>현재 1위 학과</span><strong>{snapshot.summary.champion}</strong></div></div>
+
+      <div className="admin-summary">
+        <div>
+          <span>등록된 기록</span>
+          <strong>{snapshot.summary.playCount}</strong>
+        </div>
+        <div>
+          <span>현재 1위 학과</span>
+          <strong>{snapshot.summary.champion}</strong>
+        </div>
+      </div>
 
       <section className="admin-score-entry">
-        <div className="admin-score-heading"><h2>점수 직접 등록</h2><p>{selectedGameIsTeam ? "협동 게임은 대표 학번과 팀명으로 등록합니다." : "같은 학번과 게임은 가장 높은 점수 하나만 순위에 반영됩니다."}</p></div>
+        <div className="admin-score-heading">
+          <h2>점수 직접 등록</h2>
+          <p>
+            {selectedGameIsTeam
+              ? "협동 게임은 대표 학번과 팀명으로 등록합니다."
+              : "같은 학번과 게임은 가장 높은 점수 하나만 순위에 반영됩니다."}
+          </p>
+        </div>
+
         <form onSubmit={submitManualScore}>
           <fieldset className="admin-game-picker">
             <legend>게임 선택</legend>
-            <div>{games.map((game) => <button type="button" aria-pressed={manualScore.gameId === game.id} onClick={() => {
-              setStudentLookup("idle");
-              setManualScore((current) => ({ ...current, gameId: game.id, studentId: "", nickname: "", score: "" }));
-            }} key={game.id}><strong>{game.name}</strong></button>)}</div>
+            <div>
+              {games.map((game) => (
+                <button
+                  type="button"
+                  aria-pressed={manualScore.gameId === game.id}
+                  onClick={() => {
+                    setStudentLookup("idle");
+                    setManualScore((current) => ({
+                      ...current,
+                      gameId: game.id,
+                      studentId: "",
+                      nickname: "",
+                      score: "",
+                    }));
+                  }}
+                  key={game.id}
+                >
+                  <strong>{game.name}</strong>
+                </button>
+              ))}
+            </div>
           </fieldset>
+
           <div className="admin-score-fields">
-            <label>{selectedGameIsTeam ? "대표 학번" : "학번"}<input type="text" inputMode="numeric" autoComplete="off" placeholder="숫자 6~12자리" value={manualScore.studentId} onChange={(event) => {
-              const studentId = event.target.value.replace(/\D/g, "").slice(0, 12);
-              setStudentLookup("idle");
-              setManualScore((current) => ({
-                ...current,
-                studentId,
-                nickname: studentId === current.studentId ? current.nickname : "",
-                departmentId: studentId === current.studentId ? current.departmentId : (activeDepartments[0]?.id ?? ""),
-              }));
-            }} required /></label>
-            <label>학과<select value={manualScore.departmentId} onChange={(event) => setManualScore((current) => ({ ...current, departmentId: event.target.value }))} disabled={studentLookup === "found"} required>{activeDepartments.map((department) => <option value={department.id} key={department.id}>{department.name}</option>)}</select></label>
-            <label>{selectedGameIsTeam ? "팀명" : "닉네임"}<input type="text" autoComplete="off" minLength={2} maxLength={12} placeholder="2~12자" value={manualScore.nickname} onChange={(event) => setManualScore((current) => ({ ...current, nickname: event.target.value }))} readOnly={!selectedGameIsTeam && studentLookup === "found"} required /></label>
-            <label>점수<input type="number" min={0} max={selectedGame?.maxScore ?? 9999} step={1} placeholder={`0~${selectedGame?.maxScore ?? 9999}`} value={manualScore.score} onChange={(event) => setManualScore((current) => ({ ...current, score: event.target.value }))} required /></label>
+            <label>
+              {selectedGameIsTeam ? "대표 학번" : "학번"}
+              <input
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                placeholder="숫자 6~12자리"
+                value={manualScore.studentId}
+                onChange={(event) => {
+                  const studentId = event.target.value.replace(/\D/g, "").slice(0, 12);
+                  setStudentLookup("idle");
+                  setManualScore((current) => ({
+                    ...current,
+                    studentId,
+                    nickname: studentId === current.studentId ? current.nickname : "",
+                    departmentId:
+                      studentId === current.studentId
+                        ? current.departmentId
+                        : (activeDepartments[0]?.id ?? ""),
+                  }));
+                }}
+                required
+              />
+            </label>
+
+            <label>
+              학과
+              <select
+                value={manualScore.departmentId}
+                onChange={(event) =>
+                  setManualScore((current) => ({ ...current, departmentId: event.target.value }))
+                }
+                disabled={studentLookup === "found"}
+                required
+              >
+                {activeDepartments.map((department) => (
+                  <option value={department.id} key={department.id}>
+                    {department.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              {selectedGameIsTeam ? "팀명" : "닉네임"}
+              <input
+                type="text"
+                autoComplete="off"
+                minLength={2}
+                maxLength={12}
+                placeholder="2~12자"
+                value={manualScore.nickname}
+                onChange={(event) =>
+                  setManualScore((current) => ({ ...current, nickname: event.target.value }))
+                }
+                readOnly={!selectedGameIsTeam && studentLookup === "found"}
+                required
+              />
+            </label>
+
+            <label>
+              점수
+              <input
+                type="number"
+                min={0}
+                max={selectedGame?.maxScore ?? 9999}
+                step={1}
+                placeholder={`0~${selectedGame?.maxScore ?? 9999}`}
+                value={manualScore.score}
+                onChange={(event) =>
+                  setManualScore((current) => ({ ...current, score: event.target.value }))
+                }
+                required
+              />
+            </label>
           </div>
-          {studentLookup === "loading" && <p className="form-success" role="status">학번을 확인하는 중입니다.</p>}
-          {studentLookup === "found" && <p className="form-success" role="status">{selectedGameIsTeam ? "기존 학생의 학과를 불러왔습니다. 팀명을 입력해주세요." : "기존 학생입니다. 닉네임과 학과를 자동으로 불러왔습니다."}</p>}
-          {studentLookup === "new" && <p className="form-success" role="status">{selectedGameIsTeam ? "처음 등록하는 대표 학번입니다. 학과와 팀명을 입력해주세요." : "처음 등록하는 학번입니다. 학과와 닉네임을 입력해주세요."}</p>}
-          {studentLookup === "error" && <p className="form-error" role="alert">학번 조회에 실패했습니다. 잠시 후 다시 입력해주세요.</p>}
+
+          <div className="admin-lookup-slot" aria-live="polite">
+            {studentLookup === "loading" && (
+              <p className="form-info-inline" role="status">
+                ⏳ 학번을 조회하고 있습니다...
+              </p>
+            )}
+            {studentLookup === "found" && (
+              <p className="form-success-inline" role="status">
+                {selectedGameIsTeam
+                  ? "✓ 기존 학생의 학과를 불러왔습니다. 팀명을 입력해주세요."
+                  : "✓ 기존 학생입니다. 닉네임과 학과를 자동으로 불러왔습니다."}
+              </p>
+            )}
+            {studentLookup === "new" && (
+              <p className="form-info-inline" role="status">
+                {selectedGameIsTeam
+                  ? "ℹ 처음 등록하는 대표 학번입니다. 학과와 팀명을 입력해주세요."
+                  : "ℹ 처음 등록하는 학번입니다. 학과와 닉네임을 입력해주세요."}
+              </p>
+            )}
+            {studentLookup === "error" && (
+              <p className="form-error-inline" role="alert">
+                ✕ 학번 조회에 실패했습니다. 잠시 후 다시 입력해주세요.
+              </p>
+            )}
+          </div>
+
           {error && <p className="form-error" role="alert">{error}</p>}
           {success && <p className="form-success" role="status">{success}</p>}
-          <button className="pressable-button pressable-orange admin-score-submit" type="submit" disabled={submitting || studentLookup === "loading"}>{submitting ? "등록 중" : "점수 등록"}</button>
+
+          <button
+            className="pressable-button pressable-orange admin-score-submit"
+            type="submit"
+            disabled={submitting || studentLookup === "loading"}
+          >
+            {submitting ? "등록 중" : "점수 등록"}
+          </button>
         </form>
       </section>
 
       <section className="admin-records" aria-labelledby="admin-records-title">
         <div className="admin-section-title">
-          <div><h2 id="admin-records-title">등록 점수 관리</h2></div>
+          <div>
+            <h2 id="admin-records-title">등록 점수 관리</h2>
+          </div>
           <p>최근 수정 순 · 총 {snapshot.records.length}건</p>
         </div>
-        <p className="admin-records-note">닉네임·학과 수정은 같은 학번의 모든 게임 기록에 반영됩니다. 삭제는 선택한 게임 점수만 처리합니다.</p>
+        <p className="admin-records-note">
+          닉네임·학과 수정은 같은 학번의 모든 게임 기록에 반영됩니다. 삭제는 선택한 게임 점수만 처리합니다.
+        </p>
 
         {snapshot.records.length === 0 ? (
           <div className="admin-empty-state">
@@ -372,39 +522,250 @@ export function AdminConsole() {
             <p>위 입력 폼에서 첫 점수를 등록하면 이곳에 수정·삭제 목록이 표시됩니다.</p>
           </div>
         ) : (
-          <div className="admin-table-wrap">
-            <table>
-              <thead><tr><th>게임</th><th>학번/대표</th><th>닉네임/팀명</th><th>학과</th><th>점수</th><th>수정 시각</th><th>관리</th></tr></thead>
-              <tbody>
-                {snapshot.records.map((record) => {
-                  const editing = editForm?.id === record.id;
-                  return (
-                    <tr key={record.id}>
-                      <td><strong>{getGameName(record.gameId)}</strong></td>
-                      <td>{record.studentNumber}</td>
-                      <td>{editing ? <input aria-label={isTeamGame(record.gameId) ? "팀명 수정" : "닉네임 수정"} type="text" minLength={2} maxLength={12} value={editForm.nickname} onChange={(event) => setEditForm({ ...editForm, nickname: event.target.value })} form={`edit-score-${record.id}`} /> : record.nickname}</td>
-                      <td>{editing ? <select aria-label="학과 수정" value={editForm.departmentId} onChange={(event) => setEditForm({ ...editForm, departmentId: event.target.value })} form={`edit-score-${record.id}`}>{activeDepartments.map((department) => <option value={department.id} key={department.id}>{department.name}</option>)}</select> : getDepartmentName(record.departmentId)}</td>
-                      <td>{editing ? <input aria-label="점수 수정" type="number" min={0} max={9999} step={1} value={editForm.score} onChange={(event) => setEditForm({ ...editForm, score: event.target.value })} form={`edit-score-${record.id}`} /> : record.score.toLocaleString("ko-KR")}</td>
-                      <td>{formatUpdatedAt(record.createdAt)}</td>
-                      <td>
-                        {editing ? (
-                          <form id={`edit-score-${record.id}`} className="admin-record-actions" onSubmit={saveEdit}>
-                            <button type="submit" className="admin-save-button" disabled={busyScoreId === record.id}>{busyScoreId === record.id ? "저장 중" : "저장"}</button>
-                            <button type="button" onClick={() => setEditForm(null)} disabled={busyScoreId === record.id}>취소</button>
-                          </form>
-                        ) : (
-                          <div className="admin-record-actions">
-                            <button type="button" className="admin-edit-button" onClick={() => beginEdit(record)} disabled={busyScoreId !== null}>수정</button>
-                            <button type="button" className="admin-delete-button" onClick={() => void removeScore(record)} disabled={busyScoreId !== null}>{busyScoreId === record.id ? "삭제 중" : "삭제"}</button>
+          <>
+            {/* Desktop Table */}
+            <div className="admin-table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>게임</th>
+                    <th>학번/대표</th>
+                    <th>닉네임/팀명</th>
+                    <th>학과</th>
+                    <th>점수</th>
+                    <th>수정 시각</th>
+                    <th>관리</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {snapshot.records.map((record) => {
+                    const editing = editForm?.id === record.id;
+                    return (
+                      <tr key={record.id}>
+                        <td>
+                          <strong>{getGameName(record.gameId)}</strong>
+                        </td>
+                        <td>{record.studentNumber}</td>
+                        <td>
+                          {editing ? (
+                            <input
+                              aria-label={isTeamGame(record.gameId) ? "팀명 수정" : "닉네임 수정"}
+                              type="text"
+                              minLength={2}
+                              maxLength={12}
+                              value={editForm.nickname}
+                              onChange={(event) =>
+                                setEditForm({ ...editForm, nickname: event.target.value })
+                              }
+                              form={`edit-score-${record.id}`}
+                            />
+                          ) : (
+                            record.nickname
+                          )}
+                        </td>
+                        <td>
+                          {editing ? (
+                            <select
+                              aria-label="학과 수정"
+                              value={editForm.departmentId}
+                              onChange={(event) =>
+                                setEditForm({ ...editForm, departmentId: event.target.value })
+                              }
+                              form={`edit-score-${record.id}`}
+                            >
+                              {activeDepartments.map((department) => (
+                                <option value={department.id} key={department.id}>
+                                  {department.name}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            getDepartmentName(record.departmentId)
+                          )}
+                        </td>
+                        <td>
+                          {editing ? (
+                            <input
+                              aria-label="점수 수정"
+                              type="number"
+                              min={0}
+                              max={9999}
+                              step={1}
+                              value={editForm.score}
+                              onChange={(event) =>
+                                setEditForm({ ...editForm, score: event.target.value })
+                              }
+                              form={`edit-score-${record.id}`}
+                            />
+                          ) : (
+                            record.score.toLocaleString("ko-KR")
+                          )}
+                        </td>
+                        <td>{formatUpdatedAt(record.createdAt)}</td>
+                        <td>
+                          {editing ? (
+                            <form
+                              id={`edit-score-${record.id}`}
+                              className="admin-record-actions"
+                              onSubmit={saveEdit}
+                            >
+                              <button
+                                type="submit"
+                                className="admin-save-button"
+                                disabled={busyScoreId === record.id}
+                              >
+                                {busyScoreId === record.id ? "저장 중" : "저장"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setEditForm(null)}
+                                disabled={busyScoreId === record.id}
+                              >
+                                취소
+                              </button>
+                            </form>
+                          ) : (
+                            <div className="admin-record-actions">
+                              <button
+                                type="button"
+                                className="admin-edit-button"
+                                onClick={() => beginEdit(record)}
+                                disabled={busyScoreId !== null}
+                              >
+                                수정
+                              </button>
+                              <button
+                                type="button"
+                                className="admin-delete-button"
+                                onClick={() => void removeScore(record)}
+                                disabled={busyScoreId !== null}
+                              >
+                                {busyScoreId === record.id ? "삭제 중" : "삭제"}
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="admin-mobile-cards" aria-label="등록 점수 모바일 목록">
+              {snapshot.records.map((record) => {
+                const editing = editForm?.id === record.id;
+                return (
+                  <div className="admin-record-card" key={record.id}>
+                    <div className="admin-record-card-header">
+                      <strong className="admin-record-game-name">{getGameName(record.gameId)}</strong>
+                      <b className="admin-record-score">
+                        {editing ? "수정 중" : `${record.score.toLocaleString("ko-KR")}점`}
+                      </b>
+                    </div>
+
+                    {editing ? (
+                      <form className="admin-mobile-edit-form" onSubmit={saveEdit}>
+                        <label>
+                          닉네임 / 팀명
+                          <input
+                            type="text"
+                            minLength={2}
+                            maxLength={12}
+                            value={editForm.nickname}
+                            onChange={(e) => setEditForm({ ...editForm, nickname: e.target.value })}
+                            required
+                          />
+                        </label>
+                        <label>
+                          학과
+                          <select
+                            value={editForm.departmentId}
+                            onChange={(e) => setEditForm({ ...editForm, departmentId: e.target.value })}
+                            required
+                          >
+                            {activeDepartments.map((d) => (
+                              <option value={d.id} key={d.id}>
+                                {d.name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label>
+                          점수
+                          <input
+                            type="number"
+                            min={0}
+                            max={9999}
+                            step={1}
+                            value={editForm.score}
+                            onChange={(e) => setEditForm({ ...editForm, score: e.target.value })}
+                            required
+                          />
+                        </label>
+                        <div className="admin-record-actions">
+                          <button
+                            type="submit"
+                            className="admin-save-button"
+                            disabled={busyScoreId === record.id}
+                          >
+                            {busyScoreId === record.id ? "저장 중" : "저장"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditForm(null)}
+                            disabled={busyScoreId === record.id}
+                          >
+                            취소
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <>
+                        <div className="admin-record-card-meta">
+                          <div>
+                            <span>학번: </span>
+                            <strong>{record.studentNumber}</strong>
                           </div>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                          <div>
+                            <span>닉네임: </span>
+                            <strong>{record.nickname}</strong>
+                          </div>
+                          <div>
+                            <span>학과: </span>
+                            <strong>{getDepartmentName(record.departmentId)}</strong>
+                          </div>
+                          <div className="admin-record-time">
+                            <span>수정 시각: </span>
+                            <strong>{formatUpdatedAt(record.createdAt)}</strong>
+                          </div>
+                        </div>
+                        <div className="admin-record-actions">
+                          <button
+                            type="button"
+                            className="admin-edit-button"
+                            onClick={() => beginEdit(record)}
+                            disabled={busyScoreId !== null}
+                          >
+                            수정
+                          </button>
+                          <button
+                            type="button"
+                            className="admin-delete-button"
+                            onClick={() => void removeScore(record)}
+                            disabled={busyScoreId !== null}
+                          >
+                            {busyScoreId === record.id ? "삭제 중" : "삭제"}
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </section>
     </div>

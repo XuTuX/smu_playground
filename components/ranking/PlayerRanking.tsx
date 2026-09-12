@@ -15,15 +15,30 @@ export function PlayerRanking({ standings, linked = true, mode = "individual" }:
   return (
     <div className="player-ranking-list" role="list">
       {standings.map((standing) => {
+        const medal =
+          standing.rank === 1 ? "🥇" : standing.rank === 2 ? "🥈" : standing.rank === 3 ? "🥉" : null;
+
         const content = (
           <>
-            <span>{String(standing.rank).padStart(2, "0")}</span>
-            <div>
+            <span
+              className={`rank-number player-rank-${standing.rank}`}
+              title={`${standing.rank}위`}
+              aria-label={`${standing.rank}위`}
+            >
+              {medal ? (
+                <span className="rank-medal-emoji" aria-hidden="true">
+                  {medal}
+                </span>
+              ) : (
+                String(standing.rank).padStart(2, "0")
+              )}
+            </span>
+            <div className="player-info-wrap">
               <strong>{standing.nickname}</strong>
               <small>{standing.departmentName}</small>
             </div>
             <em>{standing.gameName}</em>
-            <b>
+            <b className="player-score-value">
               {standing.score.toLocaleString("ko-KR")}
               <small>점</small>
             </b>

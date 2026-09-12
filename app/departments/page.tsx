@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DepartmentRanking } from "@/components/ranking/DepartmentRanking";
+import { DepartmentExplorer } from "@/components/ranking/DepartmentExplorer";
 import { RankingAutoRefresh } from "@/components/ranking/RankingAutoRefresh";
 import { RetroCard } from "@/components/ui/RetroCard";
 import { getAllScores } from "@/lib/score-store";
@@ -15,12 +15,12 @@ export default async function DepartmentsPage() {
     <div className="site-shell ranking-list-page">
       <RankingAutoRefresh />
       <header className="page-intro public-page-intro games-page-intro">
-        <h1>학과 순위</h1>
-        <p>각 게임에서 학과별 상위 5개 기록을 합산한 전체 순위입니다.</p>
+        <h1>전체 학과 순위</h1>
+        <p>각 게임에서 학과별 상위 5개 기록을 합산한 종합 순위입니다.</p>
       </header>
       <section className="section-block ranking-list-section" aria-label="전체 학과 순위">
         <RetroCard className="all-departments-card">
-          <DepartmentRanking standings={standings} limit={standings.length} />
+          <DepartmentExplorer standings={standings} />
         </RetroCard>
       </section>
     </div>

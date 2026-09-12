@@ -19,13 +19,26 @@ export function DepartmentRanking({
   return (
     <div className="department-ranking-list" role="list">
       {standings.slice(0, limit).map((standing) => {
+        const medal =
+          standing.rank === 1 ? "🥇" : standing.rank === 2 ? "🥈" : standing.rank === 3 ? "🥉" : null;
+
         const content = (
           <>
-            <span className={`rank-number rank-${standing.rank}`}>
-              {String(standing.rank).padStart(2, "0")}
+            <span
+              className={`rank-number rank-${standing.rank}`}
+              title={`${standing.rank}위`}
+              aria-label={`${standing.rank}위`}
+            >
+              {medal ? (
+                <span className="rank-medal-emoji" aria-hidden="true">
+                  {medal}
+                </span>
+              ) : (
+                String(standing.rank).padStart(2, "0")
+              )}
             </span>
-            <strong>{standing.departmentName}</strong>
-            <b>
+            <strong className="department-row-name">{standing.departmentName}</strong>
+            <b className="department-row-score">
               {standing.totalScore.toLocaleString("ko-KR")}
               <small>점</small>
             </b>
