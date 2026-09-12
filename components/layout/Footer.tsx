@@ -16,7 +16,6 @@ export function Footer() {
           <Link href="/">홈</Link>
           <Link href="/departments">학과 순위</Link>
           <Link href="/ranking">개인·팀 순위</Link>
-          <Link href="/admin">관리자</Link>
         </nav>
       </div>
     </footer>

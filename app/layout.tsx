@@ -19,8 +19,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ko" className={jua.variable}>
-      <body>
+    <html lang="ko" className={jua.variable} suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <a href="#main-content" className="skip-link">본문 바로가기</a>
         <Header />
         <main className="page-root" id="main-content">{children}</main>

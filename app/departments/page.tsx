@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { DepartmentExplorer } from "@/components/ranking/DepartmentExplorer";
+import { DepartmentRanking } from "@/components/ranking/DepartmentRanking";
 import { RankingAutoRefresh } from "@/components/ranking/RankingAutoRefresh";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { RetroCard } from "@/components/ui/RetroCard";
 import { getAllScores } from "@/lib/score-store";
 import { getDepartmentStandings } from "@/lib/ranking";
@@ -20,7 +21,14 @@ export default async function DepartmentsPage() {
       </header>
       <section className="section-block ranking-list-section" aria-label="전체 학과 순위">
         <RetroCard className="all-departments-card">
-          <DepartmentExplorer standings={standings} />
+          {standings.length > 0 ? (
+            <DepartmentRanking standings={standings} limit={standings.length} />
+          ) : (
+            <EmptyState
+              title="아직 등록된 학과 순위가 없어요!"
+              description="부스에서 미니게임에 참여하면 우리 학과의 순위가 여기에 표시됩니다."
+            />
+          )}
         </RetroCard>
       </section>
     </div>
