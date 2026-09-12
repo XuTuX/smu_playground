@@ -14,8 +14,6 @@ export function TeamRankingDetailModal({
   onClose,
   standings,
 }: TeamRankingDetailModalProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -32,16 +30,6 @@ export function TeamRankingDetailModal({
 
   if (!isOpen) return null;
 
-  const filtered = standings.filter((t) => {
-    if (!searchQuery.trim()) return true;
-    const query = searchQuery.trim().toLowerCase();
-    return (
-      t.teamName.toLowerCase().includes(query) ||
-      t.departmentName.toLowerCase().includes(query) ||
-      t.gameScores.some(({ gameName }) => gameName.toLowerCase().includes(query))
-    );
-  });
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-stone-900/60 backdrop-blur-sm animate-fade-in"
@@ -54,8 +42,8 @@ export function TeamRankingDetailModal({
         className="relative w-full max-w-2xl max-h-[85vh] bg-[#FFFDF7] border-2 border-stone-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Top Bar */}
-        <div className="flex items-center justify-between p-5 sm:p-6 border-b border-stone-200 bg-[#EAF8F1]/70">
+        {/* Modal Header */}
+        <div className="flex items-center justify-between p-5 sm:p-6 border-b border-stone-200 bg-white">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
               👥
@@ -65,7 +53,7 @@ export function TeamRankingDetailModal({
                 팀게임 순위
               </h2>
               <p className="text-sm font-semibold text-stone-500">
-                같은 팀명의 팀게임 3종 최고 점수 합산
+                협동 팀전 미니게임 팀별 랭킹
               </p>
             </div>
           </div>
@@ -79,25 +67,14 @@ export function TeamRankingDetailModal({
           </button>
         </div>
 
-        {/* Search Filter */}
-        <div className="p-4 sm:px-6 border-b border-stone-100 bg-white">
-          <input
-            type="search"
-            placeholder="팀명, 학과 또는 게임명으로 검색"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-11 px-4 text-base font-semibold bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white"
-          />
-        </div>
-
         {/* List of Teams */}
         <div className="overflow-y-auto p-4 sm:p-6 space-y-2.5">
-          {filtered.length === 0 ? (
+          {standings.length === 0 ? (
             <div className="py-12 text-center text-stone-500 font-semibold text-base">
               등록된 팀 기록이 없습니다.
             </div>
           ) : (
-            filtered.map((team) => {
+            standings.map((team) => {
               const rankColor =
                 team.rank === 1
                   ? "bg-amber-100 text-amber-800 border-amber-300"

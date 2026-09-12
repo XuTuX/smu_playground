@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import type { TeamStanding } from "@/lib/types";
 
@@ -9,18 +7,6 @@ export function AllTeamsRankingView({
 }: {
   standings: TeamStanding[];
 }) {
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const filtered = standings.filter((t) => {
-    if (!searchQuery.trim()) return true;
-    const query = searchQuery.trim().toLowerCase();
-    return (
-      t.teamName.toLowerCase().includes(query) ||
-      t.departmentName.toLowerCase().includes(query) ||
-      t.gameName.toLowerCase().includes(query)
-    );
-  });
-
   const champion = standings[0];
 
   return (
@@ -72,30 +58,14 @@ export function AllTeamsRankingView({
         </div>
       </header>
 
-      {/* Search Input */}
-      <div className="mb-6">
-        <div className="relative max-w-md">
-          <input
-            type="search"
-            placeholder="팀명, 소속 학과 또는 게임명 검색"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-12 pl-11 pr-4 text-base font-semibold bg-white border border-stone-200 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
-          />
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 font-bold">
-            🔍
-          </span>
-        </div>
-      </div>
-
       {/* Ranking List */}
       <div className="space-y-3">
-        {filtered.length === 0 ? (
+        {standings.length === 0 ? (
           <div className="p-12 text-center bg-white rounded-3xl border border-stone-200 shadow-sm text-stone-500 font-semibold text-base">
             등록된 팀 기록이 없습니다.
           </div>
         ) : (
-          filtered.map((team) => {
+          standings.map((team) => {
             const rankBadgeClass =
               team.rank === 1
                 ? "bg-amber-100 text-amber-900 border-amber-300 font-black"
@@ -111,35 +81,53 @@ export function AllTeamsRankingView({
             return (
               <div
                 key={team.id}
-                className="p-5 sm:p-6 bg-white rounded-3xl border border-stone-200/90 shadow-sm hover:shadow-md transition-all flex items-center justify-between gap-4 flex-wrap"
+                className="p-5 sm:p-6 bg-white rounded-3xl border border-stone-200/90 shadow-sm hover:shadow-md transition-all space-y-3"
               >
-                <div className="flex items-center gap-4 min-w-0">
-                  <span
-                    className={`w-11 h-11 rounded-2xl border flex items-center justify-center text-base shrink-0 ${rankBadgeClass}`}
-                  >
-                    {medalEmoji || `${team.rank}위`}
-                  </span>
-                  <div className="min-w-0">
-                    <strong className="block text-lg sm:text-xl font-black text-stone-900 truncate">
-                      {team.teamName}
-                    </strong>
-                    <div className="flex items-center gap-2 text-sm font-semibold text-stone-500 mt-0.5">
-                      <span className="font-bold text-stone-700">{team.departmentName}</span>
-                      <span>·</span>
-                      <span className="text-emerald-700 font-bold">
-                        {team.emoji} {team.gameName}
+                {/* Main Row */}
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <span
+                      className={`w-11 h-11 rounded-2xl border flex items-center justify-center text-base shrink-0 ${rankBadgeClass}`}
+                    >
+                      {medalEmoji || `${team.rank}위`}
+                    </span>
+                    <div className="min-w-0">
+                      <strong className="block text-lg sm:text-xl font-black text-stone-900 truncate">
+                        {team.teamName}
+                      </strong>
+                      <span className="text-sm font-semibold text-stone-500 truncate block">
+                        {team.departmentName}
                       </span>
                     </div>
                   </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-stone-500">종합 점수</span>
+                    <b className="text-xl sm:text-2xl font-black text-stone-900">
+                      {team.score.toLocaleString("ko-KR")}
+                      <span className="text-sm font-bold ml-0.5">점</span>
+                    </b>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0 ml-auto">
-                  <span className="text-sm font-bold text-stone-500">점수</span>
-                  <b className="text-xl sm:text-2xl font-black text-stone-900">
-                    {team.score.toLocaleString("ko-KR")}
-                    <span className="text-sm font-bold ml-0.5">점</span>
-                  </b>
-                </div>
+                {/* Game Breakdown List: 각 게임별로 몇점인지 */}
+                {team.gameScores.length > 0 && (
+                  <div className="pt-3 border-t border-stone-100 flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-bold text-stone-400 mr-1">게임별 점수:</span>
+                    {team.gameScores.map((game) => (
+                      <div
+                        key={game.gameId}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-stone-50 border border-stone-200/80 text-sm font-semibold text-stone-700"
+                      >
+                        <span>{game.emoji}</span>
+                        <span className="font-bold text-stone-800">{game.gameName}</span>
+                        <b className="text-emerald-700 font-black ml-0.5">
+                          {game.score.toLocaleString("ko-KR")}점
+                        </b>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             );
           })

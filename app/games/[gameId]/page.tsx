@@ -35,7 +35,6 @@ export default async function GameDetailPage({
 
   const gameScores = (await getAllScores()).filter((score) => score.gameId === game.id);
   const playerStandings = getPlayerStandings(gameScores);
-  const top = playerStandings[0];
 
   return (
     <div className="site-shell game-detail-page">
@@ -46,30 +45,13 @@ export default async function GameDetailPage({
         </PressableLink>
       </div>
 
-      <header className={`game-detail-hero accent-${game.accent}${top ? "" : " no-high-score"}`}>
+      <header className={`game-detail-hero accent-${game.accent} no-high-score`}>
         <div>
           <span className="game-detail-emoji" aria-hidden="true">
             {game.emoji}
           </span>
-          <div className="game-detail-badge-wrap">
-            <span className="game-mode-tag">
-              {game.rankingMode === "team" ? "👥 협동 팀전" : "👤 개인 챌린지"}
-            </span>
-          </div>
           <h1>{game.name}</h1>
-          <p>{game.description}</p>
         </div>
-        {top && (
-          <div className="game-high-score">
-            <span>오늘 최고 점수</span>
-            <strong>{top.score.toLocaleString("ko-KR")}</strong>
-            <small>
-              {top.nickname}
-              <br />
-              {top.departmentName}
-            </small>
-          </div>
-        )}
       </header>
 
       {gameScores.length > 0 ? (

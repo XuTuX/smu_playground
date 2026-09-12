@@ -14,7 +14,6 @@ export function PlayerRankingDetailModal({
   onClose,
   standings,
 }: PlayerRankingDetailModalProps) {
-  const [searchQuery, setSearchQuery] = useState("");
   const [expandedPlayerIds, setExpandedPlayerIds] = useState<Set<string>>(
     new Set(standings.slice(0, 3).map((s) => s.id)),
   );
@@ -44,15 +43,6 @@ export function PlayerRankingDetailModal({
     });
   };
 
-  const filtered = standings.filter((p) => {
-    if (!searchQuery.trim()) return true;
-    const query = searchQuery.trim().toLowerCase();
-    return (
-      p.nickname.toLowerCase().includes(query) ||
-      p.departmentName.toLowerCase().includes(query)
-    );
-  });
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-stone-900/60 backdrop-blur-sm animate-fade-in"
@@ -66,17 +56,17 @@ export function PlayerRankingDetailModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Top Bar */}
-        <div className="flex items-center justify-between p-5 sm:p-6 border-b border-stone-200 bg-[#EEF6FF]/60">
+        <div className="flex items-center justify-between p-5 sm:p-6 border-b border-stone-200 bg-white">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-sky-500 text-white flex items-center justify-center font-bold text-lg shadow-sm">
-              👤
+            <div className="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+              🏆
             </div>
             <div>
               <h2 id="player-modal-title" className="text-xl sm:text-2xl font-black text-stone-900">
-                개인 순위 & 게임별 점수
+                개인 순위 및 게임별 점수
               </h2>
               <p className="text-sm font-semibold text-stone-500">
-                플레이어별 각 게임 획득 점수와 총점 구성
+                선수를 클릭하면 종목별 상세 점수를 확인할 수 있습니다
               </p>
             </div>
           </div>
@@ -90,25 +80,14 @@ export function PlayerRankingDetailModal({
           </button>
         </div>
 
-        {/* Search Filter */}
-        <div className="p-4 sm:px-6 border-b border-stone-100 bg-white">
-          <input
-            type="search"
-            placeholder="이름 또는 학과로 검색"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-11 px-4 text-base font-semibold bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 focus:bg-white"
-          />
-        </div>
-
         {/* List of Players with Expandable Game Breakdowns */}
         <div className="overflow-y-auto p-4 sm:p-6 space-y-3 divide-y divide-stone-100">
-          {filtered.length === 0 ? (
+          {standings.length === 0 ? (
             <div className="py-12 text-center text-stone-500 font-semibold text-base">
-              검색 결과가 없습니다.
+              등록된 참가자 기록이 없습니다.
             </div>
           ) : (
-            filtered.map((player) => {
+            standings.map((player) => {
               const isExpanded = expandedPlayerIds.has(player.id);
               const rankColor =
                 player.rank === 1

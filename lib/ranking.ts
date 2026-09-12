@@ -294,7 +294,7 @@ export function getTeamStandings(
         departmentId: team.departmentId,
         departmentName: getDepartment(team.departmentId)?.name ?? "알 수 없는 학과",
         gameId: "team-overall",
-        gameName: "팀게임 3종 합산",
+        gameName: "팀게임 종합",
         emoji: "👥",
         score: totalScore,
         gameCount: gameScores.filter(({ score }) => score > 0).length,

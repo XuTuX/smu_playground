@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import type { DetailedPlayerStanding } from "@/lib/types";
 
@@ -9,17 +7,6 @@ export function AllPlayersRankingView({
 }: {
   standings: DetailedPlayerStanding[];
 }) {
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const filtered = standings.filter((p) => {
-    if (!searchQuery.trim()) return true;
-    const query = searchQuery.trim().toLowerCase();
-    return (
-      p.nickname.toLowerCase().includes(query) ||
-      p.departmentName.toLowerCase().includes(query)
-    );
-  });
-
   const champion = standings[0];
 
   return (
@@ -71,30 +58,14 @@ export function AllPlayersRankingView({
         </div>
       </header>
 
-      {/* Search Input */}
-      <div className="mb-6">
-        <div className="relative max-w-md">
-          <input
-            type="search"
-            placeholder="이름 또는 소속 학과 검색"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-12 pl-11 pr-4 text-base font-semibold bg-white border border-stone-200 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
-          />
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 font-bold">
-            🔍
-          </span>
-        </div>
-      </div>
-
       {/* Ranking List */}
       <div className="space-y-3">
-        {filtered.length === 0 ? (
+        {standings.length === 0 ? (
           <div className="p-12 text-center bg-white rounded-3xl border border-stone-200 shadow-sm text-stone-500 font-semibold text-base">
             등록된 참가자 기록이 없습니다.
           </div>
         ) : (
-          filtered.map((player) => {
+          standings.map((player) => {
             const rankBadgeClass =
               player.rank === 1
                 ? "bg-amber-100 text-amber-900 border-amber-300 font-black"
