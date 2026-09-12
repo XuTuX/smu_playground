@@ -55,31 +55,28 @@ export default async function DepartmentDetailPage({
       <header className="p-6 sm:p-8 rounded-3xl bg-[#FFF9EC] border border-amber-200/80 shadow-sm mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
-            <div className="inline-block px-3 py-1 rounded-full bg-amber-200 text-amber-900 font-black text-sm mb-2">
-              학과 랭킹 상세
-            </div>
             <h1 className="text-3xl sm:text-4xl font-black text-stone-900 tracking-tight">
               {department.name}
             </h1>
           </div>
 
           {standing ? (
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-              <div className="px-5 py-3 rounded-2xl bg-white border border-amber-200 shadow-sm text-center min-w-[100px]">
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-4">
+              <div className="px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl bg-white border border-amber-200 shadow-sm text-center">
                 <span className="text-sm font-bold text-stone-500 block">종합 순위</span>
-                <strong className="text-2xl font-black text-amber-600 block mt-0.5">
+                <strong className="text-xl sm:text-2xl font-black text-amber-600 block mt-0.5">
                   {standing.rank}위
                 </strong>
               </div>
-              <div className="px-5 py-3 rounded-2xl bg-white border border-amber-200 shadow-sm text-center min-w-[120px]">
+              <div className="px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl bg-white border border-amber-200 shadow-sm text-center">
                 <span className="text-sm font-bold text-stone-500 block">학과 총점</span>
-                <strong className="text-2xl font-black text-stone-900 block mt-0.5">
+                <strong className="text-xl sm:text-2xl font-black text-stone-900 block mt-0.5">
                   {standing.totalScore.toLocaleString("ko-KR")}점
                 </strong>
               </div>
-              <div className="px-5 py-3 rounded-2xl bg-white border border-amber-200 shadow-sm text-center min-w-[90px]">
+              <div className="px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl bg-white border border-amber-200 shadow-sm text-center">
                 <span className="text-sm font-bold text-stone-500 block">참여 인원</span>
-                <strong className="text-2xl font-black text-stone-700 block mt-0.5">
+                <strong className="text-xl sm:text-2xl font-black text-stone-700 block mt-0.5">
                   {standing.playerCount}명
                 </strong>
               </div>
@@ -96,11 +93,8 @@ export default async function DepartmentDetailPage({
           <div className="mt-6 pt-6 border-t border-amber-200/80">
             <div className="flex items-center justify-between gap-2 flex-wrap mb-3">
               <h3 className="text-base font-black text-stone-900 flex items-center gap-1.5">
-                <span>🎯</span> 게임별 1위 합산 총점 산출 내역
+                <span>🎯</span> 게임별 1위 합산 총점 내역
               </h3>
-              <span className="text-sm font-semibold text-stone-600">
-                각 게임에서 학과 1위를 기록한 점수만 합산되어 총점이 결정됩니다
-              </span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {breakdown.map((item, idx) => (
@@ -139,9 +133,6 @@ export default async function DepartmentDetailPage({
           <h2 className="text-2xl font-black text-stone-900">
             게임별 성적 및 전체 참가 기록
           </h2>
-          <span className="text-sm font-semibold text-stone-500">
-            게임별 학과 1위 기록만 학과 총점에 합산
-          </span>
         </div>
 
         {activeBreakdown.length > 0 ? (
@@ -191,15 +182,12 @@ export default async function DepartmentDetailPage({
                             <div className="min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="text-sm font-black px-2.5 py-0.5 rounded-md bg-amber-200 text-amber-900">
-                                  총점 합산 반영 (1위)
+                                  학과 1위
                                 </span>
                                 <strong className="text-base font-black text-stone-900 truncate">
                                   {bestScore.nickname}
                                 </strong>
                               </div>
-                              <p className="text-sm font-semibold text-stone-600 mt-0.5">
-                                이 게임의 학과 1위 점수가 총점에 합산되었습니다.
-                              </p>
                             </div>
                           </div>
                           <b className="text-xl sm:text-2xl font-black text-amber-900 shrink-0">
@@ -242,11 +230,6 @@ export default async function DepartmentDetailPage({
                                     <span className="font-extrabold text-stone-900 truncate">
                                       {score.nickname}
                                     </span>
-                                    {isFirst && (
-                                      <span className="text-sm font-extrabold px-2 py-0.5 rounded bg-amber-200 text-amber-900 shrink-0">
-                                        총점 반영
-                                      </span>
-                                    )}
                                   </div>
                                   <span
                                     className={`font-black text-base shrink-0 ${

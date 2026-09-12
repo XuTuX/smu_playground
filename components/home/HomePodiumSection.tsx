@@ -81,7 +81,6 @@ export function HomePodiumSection({
         <RankingPodiumCard
           theme="yellow"
           title="학과 순위"
-          subtitle="가장 뜨거운 팀, 최고의 학과는?"
           icon={
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
@@ -97,7 +96,6 @@ export function HomePodiumSection({
         <RankingPodiumCard
           theme="sky"
           title="개인 순위"
-          subtitle="가장 빛나는 플레이어는?"
           icon={
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
@@ -113,7 +111,6 @@ export function HomePodiumSection({
         <RankingPodiumCard
           theme="mint"
           title="팀게임 순위"
-          subtitle="최고의 팀워크를 보여준 팀은?"
           icon={
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />

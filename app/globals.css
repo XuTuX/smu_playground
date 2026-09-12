@@ -5,6 +5,7 @@
   --orange: #ff5a30; --pink: #f6a9c2; --sky: #98d2f2; --mint: #a8e6cf;
   --muted: #6f665e; --line: 3px solid var(--ink); --hard-shadow: 8px 8px 0 var(--ink);
   --font-sans: Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+  --font-jua: "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 

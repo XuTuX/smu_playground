@@ -1,5 +1,4 @@
 import React from "react";
-import Link from "next/link";
 import type { TeamStanding } from "@/lib/types";
 
 export function AllTeamsRankingView({
@@ -11,45 +10,30 @@ export function AllTeamsRankingView({
 
   return (
     <div className="py-6 sm:py-10">
-      {/* Top Navigation */}
-      <div className="mb-6">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-stone-200 text-stone-700 font-bold text-sm shadow-sm hover:bg-stone-50 transition-colors"
-        >
-          ← 메인 홈으로
-        </Link>
-      </div>
 
       {/* Hero Header */}
       <header className="p-6 sm:p-8 rounded-3xl bg-[#EAF8F1] border border-emerald-200/80 shadow-sm mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
-            <div className="inline-block px-3 py-1 rounded-full bg-emerald-200 text-emerald-900 font-black text-sm mb-2">
-              팀게임 순위
-            </div>
             <h1 className="text-3xl sm:text-4xl font-black text-stone-900 tracking-tight">
               전체 팀게임 순위
             </h1>
-            <p className="text-sm font-semibold text-stone-600 mt-1">
-              협동 팀전 미니게임에서 기록한 팀별 최고 점수 랭킹입니다.
-            </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-            <div className="px-5 py-3 rounded-2xl bg-white border border-emerald-200 shadow-sm text-center min-w-[110px]">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-4">
+            <div className="px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl bg-white border border-emerald-200 shadow-sm text-center">
               <span className="text-sm font-bold text-stone-500 block">참여 팀</span>
-              <strong className="text-2xl font-black text-emerald-700 block mt-0.5">
+              <strong className="text-xl sm:text-2xl font-black text-emerald-700 block mt-0.5">
                 {standings.length}팀
               </strong>
             </div>
             {champion && (
-              <div className="px-5 py-3 rounded-2xl bg-white border border-amber-200 shadow-sm text-center min-w-[140px]">
+              <div className="px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl bg-white border border-amber-200 shadow-sm text-center">
                 <span className="text-sm font-bold text-stone-500 block">현재 1위 팀</span>
-                <strong className="text-xl font-black text-amber-600 block mt-0.5 truncate max-w-[150px]">
+                <strong className="text-lg sm:text-xl font-black text-amber-600 block mt-0.5 truncate max-w-[150px]">
                   {champion.teamName}
                 </strong>
-                <span className="text-xs font-bold text-stone-500 block mt-0.5 truncate">
+                <span className="text-sm font-bold text-stone-500 block mt-0.5 truncate">
                   {champion.departmentName} ({champion.score.toLocaleString("ko-KR")}점)
                 </span>
               </div>
@@ -81,7 +65,7 @@ export function AllTeamsRankingView({
             return (
               <div
                 key={team.id}
-                className="p-5 sm:p-6 bg-white rounded-3xl border border-stone-200/90 shadow-sm hover:shadow-md transition-all space-y-3"
+                className="p-4 sm:p-6 bg-white rounded-3xl border border-stone-200/90 shadow-sm hover:shadow-md transition-all space-y-3"
               >
                 {/* Main Row */}
                 <div className="flex items-center justify-between gap-4 flex-wrap">

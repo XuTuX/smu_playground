@@ -14,7 +14,7 @@ type CardTheme = "yellow" | "sky" | "mint";
 type RankingPodiumCardProps = {
   theme: CardTheme;
   title: string;
-  subtitle: string;
+  subtitle?: string;
   icon: React.ReactNode;
   items: PodiumItem[]; // items for 1, 2, 3
   href?: string;
@@ -62,12 +62,12 @@ export function RankingPodiumCard({
 
   const content = (
     <div
-      className={`relative flex flex-col justify-between h-full p-6 sm:p-7 rounded-[28px] border ${themeStyles.border} ${themeStyles.cardBg} ${themeStyles.shadow} transition-all duration-200 hover:-translate-y-1 hover:shadow-lg cursor-pointer select-none`}
+      className={`relative flex flex-col justify-between h-full p-4 sm:p-7 rounded-[28px] border ${themeStyles.border} ${themeStyles.cardBg} ${themeStyles.shadow} transition-all duration-200 hover:-translate-y-1 hover:shadow-lg cursor-pointer select-none`}
       role="region"
       aria-label={ariaLabel || title}
     >
       {/* Top Header */}
-      <div className="flex items-start justify-between gap-4 mb-4">
+      <div className="flex items-start justify-between gap-4 mb-2 sm:mb-4">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl bg-stone-900 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
             {icon}
@@ -76,9 +76,11 @@ export function RankingPodiumCard({
             <h2 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight leading-snug">
               {title}
             </h2>
-            <p className="text-sm font-semibold text-stone-500 mt-0.5">
-              {subtitle}
-            </p>
+            {subtitle && (
+              <p className="text-sm font-semibold text-stone-500 mt-0.5">
+                {subtitle}
+              </p>
+            )}
           </div>
         </div>
 
@@ -94,25 +96,16 @@ export function RankingPodiumCard({
       </div>
 
       {/* Podium Stage */}
-      <div className="relative pt-4 pb-2">
-        {/* Decorative Confetti Bits */}
-        <div className="absolute inset-x-0 top-0 h-16 pointer-events-none" aria-hidden="true">
-          <span className="absolute left-[18%] top-2 w-2 h-3 rounded-full bg-amber-400 rotate-45 opacity-80" />
-          <span className="absolute left-[28%] top-8 w-2 h-2 rounded-full bg-sky-400 opacity-80" />
-          <span className="absolute right-[28%] top-2 w-2.5 h-1.5 rounded-full bg-emerald-400 -rotate-12 opacity-80" />
-          <span className="absolute right-[16%] top-8 w-2 h-2.5 rounded-full bg-purple-400 rotate-12 opacity-80" />
-          <span className="absolute left-[48%] -top-1 w-2 h-2 rounded-full bg-rose-400 opacity-70" />
-        </div>
-
+      <div className="relative pb-2">
         {/* 3 Podiums Row: 2nd (left), 1st (center), 3rd (right) */}
-        <div className="grid grid-cols-3 items-end gap-2 sm:gap-3 pt-6">
+        <div className="grid grid-cols-3 items-end gap-1.5 sm:gap-3 pt-2 sm:pt-6">
           {/* 2nd Place (Left) */}
           <div className="flex flex-col items-center">
-            <div className="mb-2 shrink-0 transform transition-transform hover:scale-105">
-              <TrophyIcon rank={2} size={64} />
+            <div className="mb-1 sm:mb-2 shrink-0">
+              <TrophyIcon rank={2} size={48} />
             </div>
             {/* Pedestal Stand */}
-            <div className="w-full bg-white/95 backdrop-blur-sm border border-stone-200/70 rounded-t-2xl rounded-b-xl shadow-sm pt-4 pb-3 px-1.5 flex flex-col items-center justify-center min-h-[96px] text-center">
+            <div className="w-full bg-white/95 backdrop-blur-sm border border-stone-200/70 rounded-t-2xl rounded-b-xl shadow-sm pt-3 pb-2 sm:pt-4 sm:pb-3 px-1 flex flex-col items-center justify-center min-h-[80px] sm:min-h-[96px] text-center">
               <span className="text-sm sm:text-base font-black text-stone-900 leading-tight line-clamp-1">
                 {second?.primaryText || "-"}
               </span>
@@ -128,12 +121,12 @@ export function RankingPodiumCard({
           </div>
 
           {/* 1st Place (Center - Tallest) */}
-          <div className="flex flex-col items-center -mt-4 z-10">
-            <div className="mb-2 shrink-0 transform transition-transform hover:scale-110">
-              <TrophyIcon rank={1} size={78} />
+          <div className="flex flex-col items-center -mt-2 sm:-mt-4 z-10">
+            <div className="mb-1 sm:mb-2 shrink-0">
+              <TrophyIcon rank={1} size={58} />
             </div>
             {/* Pedestal Stand (Tallest) */}
-            <div className="w-full bg-white border border-amber-200/80 rounded-t-2xl rounded-b-xl shadow-md pt-5 pb-4 px-1.5 flex flex-col items-center justify-center min-h-[116px] text-center ring-2 ring-amber-400/20">
+            <div className="w-full bg-white border border-amber-200/80 rounded-t-2xl rounded-b-xl shadow-md pt-3 pb-2 sm:pt-5 sm:pb-4 px-1 flex flex-col items-center justify-center min-h-[90px] sm:min-h-[116px] text-center ring-2 ring-amber-400/20">
               <span className="text-base sm:text-lg font-black text-stone-950 leading-tight line-clamp-1">
                 {first?.primaryText || "-"}
               </span>
@@ -150,11 +143,11 @@ export function RankingPodiumCard({
 
           {/* 3rd Place (Right - Lowest) */}
           <div className="flex flex-col items-center">
-            <div className="mb-2 shrink-0 transform transition-transform hover:scale-105">
-              <TrophyIcon rank={3} size={58} />
+            <div className="mb-1 sm:mb-2 shrink-0">
+              <TrophyIcon rank={3} size={42} />
             </div>
             {/* Pedestal Stand */}
-            <div className="w-full bg-white/95 backdrop-blur-sm border border-stone-200/70 rounded-t-2xl rounded-b-xl shadow-sm pt-3 pb-3 px-1.5 flex flex-col items-center justify-center min-h-[82px] text-center">
+            <div className="w-full bg-white/95 backdrop-blur-sm border border-stone-200/70 rounded-t-2xl rounded-b-xl shadow-sm pt-2 pb-2 sm:pt-3 sm:pb-3 px-1 flex flex-col items-center justify-center min-h-[72px] sm:min-h-[82px] text-center">
               <span className="text-sm sm:text-base font-black text-stone-900 leading-tight line-clamp-1">
                 {third?.primaryText || "-"}
               </span>

@@ -257,7 +257,7 @@ export function getTeamStandings(
   for (const s of teamScores) {
     const teamName = (s.teamName || s.nickname || "").trim();
     if (!teamName) continue;
-    const key = teamName.toLocaleLowerCase("ko");
+    const key = s.playerId ?? teamName.toLocaleLowerCase("ko");
     const existing = teamsMap.get(key) ?? {
       teamName,
       departmentId: s.departmentId,
@@ -276,8 +276,8 @@ export function getTeamStandings(
     teamsMap.set(key, existing);
   }
 
-  const standings: TeamStanding[] = [...teamsMap.values()]
-    .map((team) => {
+  const standings: TeamStanding[] = [...teamsMap.entries()]
+    .map(([key, team]) => {
       const gameScores = games
         .filter((game) => game.isActive && game.rankingMode === "team")
         .map((game) => ({
@@ -288,7 +288,7 @@ export function getTeamStandings(
         }));
       const totalScore = gameScores.reduce((total, game) => total + game.score, 0);
       return {
-        id: `team:${team.teamName.toLocaleLowerCase("ko")}`,
+        id: `team:${key}`,
         rank: 0,
         teamName: team.teamName,
         departmentId: team.departmentId,

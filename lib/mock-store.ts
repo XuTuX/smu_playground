@@ -11,14 +11,13 @@ import type {
 } from "@/lib/types";
 
 type StoredScoreRecord = ScoreRecord & {
-  studentId?: string;
+  participantPhone?: string;
   teamName?: string | null;
-  representativePhone?: string | null;
 };
 
 type MockStudent = {
   id: string;
-  studentNumber: string;
+  phoneNumber: string;
   nickname: string;
   departmentId: string;
 };
@@ -30,7 +29,7 @@ type MockStore = {
   students: MockStudent[];
 };
 
-const MOCK_SEED_VERSION = 4;
+const MOCK_SEED_VERSION = 5;
 
 declare global {
   var __smuPlaygroundStore: MockStore | undefined;
@@ -54,23 +53,16 @@ function getStore(): MockStore {
         ...score,
         playerId:
           getGame(score.gameId)?.rankingMode === "team"
-            ? `mock-team-${score.nickname.toLocaleLowerCase("ko")}`
-            : `mock-student-${index + 1}`,
-        studentId:
-          getGame(score.gameId)?.rankingMode === "individual"
-            ? String(900001 + index)
-            : undefined,
+            ? `mock-team-010${String(10000000 + index).slice(-8)}`
+            : `mock-participant-010${String(10000000 + index).slice(-8)}`,
+        participantPhone: `010${String(10000000 + index).slice(-8)}`,
         teamName: getGame(score.gameId)?.rankingMode === "team" ? score.nickname : null,
-        representativePhone:
-          getGame(score.gameId)?.rankingMode === "team"
-            ? `010${String(10000000 + index).slice(-8)}`
-            : null,
       })),
       students: mockScores.flatMap((score, index) =>
         getGame(score.gameId)?.rankingMode === "individual"
           ? [{
-              id: `mock-student-${index + 1}`,
-              studentNumber: String(900001 + index),
+              id: `mock-participant-010${String(10000000 + index).slice(-8)}`,
+              phoneNumber: `010${String(10000000 + index).slice(-8)}`,
               nickname: score.nickname,
               departmentId: score.departmentId,
             }]
@@ -92,7 +84,6 @@ function toPublicScore(score: StoredScoreRecord): ScoreRecord {
     score: score.score,
     createdAt: score.createdAt,
     teamName: score.teamName ?? null,
-    representativePhone: score.representativePhone ?? null,
   };
 }
 
@@ -110,20 +101,34 @@ export function getAdminScoreRecords(): AdminScoreRecord[] {
       return {
         ...toPublicScore(score),
         participantKind: isTeam ? ("team" as const) : ("individual" as const),
-        studentNumber: isTeam ? null : (student?.studentNumber ?? score.studentId ?? null),
-        studentNickname: isTeam ? null : (student?.nickname ?? score.nickname),
-        representativePhone: isTeam ? (score.representativePhone ?? null) : null,
+        participantPhone: student?.phoneNumber ?? score.participantPhone ?? null,
         teamName: score.teamName ?? (isTeam ? score.nickname : null),
       };
     });
 }
 
-export function getStudentProfile(studentId: string) {
+export function getParticipantProfile(
+  phone: string,
+  participantKind: "individual" | "team",
+) {
+  if (participantKind === "team") {
+    const team = getStore().scores.find(
+      (score) =>
+        getGame(score.gameId)?.rankingMode === "team" &&
+        score.participantPhone === phone,
+    );
+    if (!team) return null;
+    return {
+      displayName: team.teamName ?? team.nickname,
+      departmentId: team.departmentId,
+    };
+  }
+
   const student = getStore().students.find(
-    ({ studentNumber }) => studentNumber === studentId,
+    ({ phoneNumber }) => phoneNumber === phone,
   );
   if (!student) return null;
-  return { nickname: student.nickname, departmentId: student.departmentId };
+  return { displayName: student.nickname, departmentId: student.departmentId };
 }
 
 export function createGameSession(input: {
@@ -236,8 +241,7 @@ export function registerGameSession(input: {
 export function createManualScore(input: {
   deviceId: string;
   gameId: string;
-  studentId: string | null;
-  representativePhone?: string | null;
+  phone: string;
   departmentId: string;
   nickname: string;
   teamName?: string | null;
@@ -250,8 +254,7 @@ export function createManualScore(input: {
   const isTeam = getGame(input.gameId)?.rankingMode === "team";
 
   if (isTeam) {
-    const normalizedTeamName = (input.teamName ?? "").trim().toLocaleLowerCase("ko");
-    const teamPlayerId = `mock-team-${normalizedTeamName}`;
+    const teamPlayerId = `mock-team-${input.phone}`;
     const existing = store.scores.find(
       (score) => score.playerId === teamPlayerId && score.gameId === input.gameId,
     );
@@ -261,7 +264,7 @@ export function createManualScore(input: {
       existing.departmentId = input.departmentId;
       existing.teamName = input.teamName;
       existing.nickname = input.teamName ?? input.nickname;
-      existing.representativePhone = input.representativePhone;
+      existing.participantPhone = input.phone;
       if (input.score > existing.score) {
         existing.sessionId = sessionId;
         existing.score = input.score;
@@ -279,7 +282,7 @@ export function createManualScore(input: {
       departmentId: input.departmentId,
       nickname: input.teamName ?? input.nickname,
       teamName: input.teamName,
-      representativePhone: input.representativePhone,
+      participantPhone: input.phone,
       score: input.score,
       createdAt,
     };
@@ -287,15 +290,14 @@ export function createManualScore(input: {
     return { status: "created" as const, previousScore: null, score: toPublicScore(teamScore) };
   }
 
-  const studentLookup = input.studentId ?? "";
   let student = store.students.find(
-    ({ studentNumber }) => studentNumber === studentLookup,
+    ({ phoneNumber }) => phoneNumber === input.phone,
   );
 
   if (!student) {
     student = {
       id: crypto.randomUUID(),
-      studentNumber: studentLookup,
+      phoneNumber: input.phone,
       departmentId: input.departmentId,
       nickname: input.nickname,
     };
@@ -330,7 +332,7 @@ export function createManualScore(input: {
     sessionId,
     playerId: student.id,
     gameId: input.gameId,
-    studentId: input.studentId ?? undefined,
+    participantPhone: input.phone,
     departmentId: student.departmentId,
     nickname: input.teamName ?? student.nickname,
     teamName: input.teamName ?? null,

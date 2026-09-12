@@ -37,14 +37,11 @@ export type ScoreRecord = {
   score: number;
   createdAt: string;
   teamName?: string | null;
-  representativePhone?: string | null;
 };
 
 export type AdminScoreRecord = ScoreRecord & {
   participantKind: "individual" | "team";
-  studentNumber: string | null;
-  studentNickname: string | null;
-  representativePhone: string | null;
+  participantPhone: string | null;
   teamName: string | null;
 };
 

@@ -2,7 +2,7 @@ import React from "react";
 
 export function Footer() {
   return (
-    <footer className="relative mt-20 overflow-hidden">
+    <footer className="relative mt-10 sm:mt-20 overflow-hidden">
       {/* Wave Transition Top */}
       <div className="w-full overflow-hidden leading-none">
         <svg
@@ -23,17 +23,8 @@ export function Footer() {
             <strong className="text-lg sm:text-xl font-black text-stone-900 block">
               SMU 놀이터
             </strong>
-            <span className="text-xs sm:text-sm font-bold text-stone-600 tracking-wider">
-              PLAY TOGETHER, SHINE HIGHER
-            </span>
-          </div>
-
-          <div className="text-center sm:text-right">
-            <span className="text-xs sm:text-sm font-bold text-stone-600 tracking-widest block uppercase">
-              GOOD PLAY
-            </span>
-            <span className="text-xs sm:text-sm font-black text-stone-800 tracking-widest block uppercase">
-              BETTER TOMORROW
+            <span className="text-sm font-bold text-stone-600">
+              세명대학교 청룡체전
             </span>
           </div>
         </div>

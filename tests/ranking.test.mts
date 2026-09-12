@@ -72,7 +72,7 @@ test("개인 상세 순위는 각 게임별 점수 구성을 올바르게 반환
   assert.equal(detailed[0].gameScores[0].score, 100);
 });
 
-test("팀 순위는 같은 팀명의 팀전 3개 최고 점수를 합산한다", () => {
+test("팀 순위는 같은 참가자 ID의 팀전 3개 최고 점수를 합산한다", () => {
   const scores = [
     { ...score("1", "student-a", "flappy", "ai-computer", "청춘MAX", 500), teamName: "청춘MAX" },
     { ...score("2", "student-a", "reaction", "ai-computer", "청춘MAX", 400), teamName: "청춘max" },
@@ -85,4 +85,15 @@ test("팀 순위는 같은 팀명의 팀전 3개 최고 점수를 합산한다",
   assert.equal(teamStandings[0].score, 1200);
   assert.equal(teamStandings[0].gameCount, 3);
   assert.equal(teamStandings[1].score, 600);
+});
+
+test("팀명이 같아도 참가자 ID가 다르면 별도 팀으로 계산한다", () => {
+  const scores = [
+    { ...score("1", "team-a", "flappy", "ai-computer", "청춘", 500), teamName: "청춘" },
+    { ...score("2", "team-b", "reaction", "business", "청춘", 400), teamName: "청춘" },
+  ];
+
+  const teamStandings = getTeamStandings(scores);
+  assert.equal(teamStandings.length, 2);
+  assert.deepEqual(teamStandings.map(({ score: value }) => value), [500, 400]);
 });

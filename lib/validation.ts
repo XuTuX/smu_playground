@@ -38,10 +38,9 @@ export function validateAdminScore(input: unknown) {
 
   const body = input as Record<string, unknown>;
   const gameId = typeof body.game_id === "string" ? body.game_id.trim() : "";
-  const studentId = typeof body.student_id === "string" ? body.student_id.trim() : "";
-  const representativePhone =
-    typeof body.representative_phone === "string"
-      ? body.representative_phone.replace(/\D/g, "")
+  const phone =
+    typeof body.phone === "string"
+      ? body.phone.replace(/\D/g, "")
       : "";
   const game = getGame(gameId);
   const departmentId =
@@ -69,11 +68,8 @@ export function validateAdminScore(input: unknown) {
   if (game.rankingMode === "team" && /[<>\u0000-\u001f\u007f]/u.test(teamName)) {
     return { ok: false as const, error: "팀명에 사용할 수 없는 문자가 있습니다." };
   }
-  if (game.rankingMode === "individual" && !/^\d{6,12}$/.test(studentId)) {
-    return { ok: false as const, error: "학번은 숫자 6~12자리로 입력해주세요." };
-  }
-  if (game.rankingMode === "team" && !/^01[016789]\d{7,8}$/.test(representativePhone)) {
-    return { ok: false as const, error: "대표자 전화번호를 숫자 10~11자리로 입력해주세요." };
+  if (!/^01[016789]\d{7,8}$/.test(phone)) {
+    return { ok: false as const, error: "전화번호를 숫자 10~11자리로 입력해주세요." };
   }
   if (!Number.isSafeInteger(score) || score < 0 || score > game.maxScore) {
     return { ok: false as const, error: `점수는 0~${game.maxScore} 정수여야 합니다.` };
@@ -83,8 +79,7 @@ export function validateAdminScore(input: unknown) {
     ok: true as const,
     value: {
       gameId: game.id,
-      studentId: game.rankingMode === "individual" ? studentId : null,
-      representativePhone: game.rankingMode === "team" ? representativePhone : null,
+      phone,
       departmentId,
       nickname: game.rankingMode === "individual" ? nickname : teamName,
       teamName: game.rankingMode === "team" ? teamName : null,

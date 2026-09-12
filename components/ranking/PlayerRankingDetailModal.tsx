@@ -65,9 +65,6 @@ export function PlayerRankingDetailModal({
               <h2 id="player-modal-title" className="text-xl sm:text-2xl font-black text-stone-900">
                 개인 순위 및 게임별 점수
               </h2>
-              <p className="text-sm font-semibold text-stone-500">
-                선수를 클릭하면 종목별 상세 점수를 확인할 수 있습니다
-              </p>
             </div>
           </div>
           <button

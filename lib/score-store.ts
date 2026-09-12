@@ -7,7 +7,7 @@ import {
   deleteAdminScore as deleteMockAdminScore,
   getAdminScoreRecords as getMockAdminScoreRecords,
   getAllScores as getMockScores,
-  getStudentProfile as getMockStudentProfile,
+  getParticipantProfile as getMockParticipantProfile,
   updateAdminScore as updateMockAdminScore,
 } from "@/lib/mock-store";
 import { isSupabaseConfigured, supabaseRest } from "@/lib/supabase-rest";
@@ -41,7 +41,7 @@ type SupabaseScoreRow = {
   updated_at: string;
   student: {
     id: string;
-    student_number: string;
+    phone_number: string | null;
     nickname: string;
     department_id: string;
   } | null;
@@ -57,9 +57,7 @@ type UpdatedScoreRow = {
   result_score_id: string;
   result_participant_id: string;
   result_participant_kind: "individual" | "team";
-  result_student_number: string | null;
-  result_student_nickname: string | null;
-  result_representative_phone: string | null;
+  result_participant_phone: string | null;
   result_team_name: string | null;
   result_display_name: string;
   result_department_id: string;
@@ -68,10 +66,9 @@ type UpdatedScoreRow = {
   result_updated_at: string;
 };
 
-type SupabaseStudentRow = {
-  id: string;
-  student_number: string;
-  nickname: string;
+type SupabaseParticipantRow = {
+  nickname?: string;
+  team_name?: string;
   department_id: string;
 };
 
@@ -112,7 +109,6 @@ function publicScore(row: SupabaseScoreRow): ScoreRecord {
     score: row.score,
     createdAt: row.updated_at,
     teamName: team?.team_name ?? row.team_name ?? null,
-    representativePhone: team?.representative_phone ?? null,
   };
 }
 
@@ -216,7 +212,7 @@ export async function getAdminScoreRecords(): Promise<AdminScoreRecord[]> {
       "score",
       "team_name",
       "updated_at",
-      "student:students!scores_student_id_fkey(id,student_number,nickname,department_id)",
+      "student:students!scores_student_id_fkey(id,phone_number,nickname,department_id)",
       "team:teams!scores_team_id_fkey(id,team_name,representative_phone,department_id)",
     ].join(",");
     const rows = await supabaseRest<SupabaseScoreRow[]>(
@@ -226,9 +222,7 @@ export async function getAdminScoreRecords(): Promise<AdminScoreRecord[]> {
     return rows.map((row) => ({
       ...publicScore(row),
       participantKind: row.team ? "team" as const : "individual" as const,
-      studentNumber: row.student?.student_number ?? null,
-      studentNickname: row.student?.nickname ?? null,
-      representativePhone: row.team?.representative_phone ?? null,
+      participantPhone: row.team?.representative_phone ?? row.student?.phone_number ?? null,
       teamName: row.team?.team_name ?? row.team_name,
     }));
   } catch (error) {
@@ -237,28 +231,34 @@ export async function getAdminScoreRecords(): Promise<AdminScoreRecord[]> {
   }
 }
 
-export async function getStudentProfile(studentNumber: string) {
+export async function getParticipantProfile(
+  phone: string,
+  participantKind: "individual" | "team",
+) {
   if (await isMockModeActive()) {
-    return getMockStudentProfile(studentNumber);
+    return getMockParticipantProfile(phone, participantKind);
   }
   if (!isSupabaseConfigured()) throw new Error("Supabase 환경 변수가 설정되지 않았습니다.");
 
-  const rows = await supabaseRest<SupabaseStudentRow[]>(
-    `students?select=id,student_number,nickname,department_id&student_number=eq.${encodeURIComponent(studentNumber)}&limit=1`,
+  const isTeam = participantKind === "team";
+  const table = isTeam ? "teams" : "students";
+  const select = isTeam ? "team_name,department_id" : "nickname,department_id";
+  const phoneColumn = isTeam ? "representative_phone" : "phone_number";
+  const rows = await supabaseRest<SupabaseParticipantRow[]>(
+    `${table}?select=${select}&${phoneColumn}=eq.${encodeURIComponent(phone)}&limit=1`,
   );
-  const student = rows[0];
-  if (!student) return null;
+  const participant = rows[0];
+  if (!participant) return null;
 
   return {
-    nickname: student.nickname,
-    departmentId: student.department_id,
+    displayName: isTeam ? participant.team_name ?? "" : participant.nickname ?? "",
+    departmentId: participant.department_id,
   };
 }
 
 export async function createManualScore(input: {
   gameId: string;
-  studentId: string | null;
-  representativePhone: string | null;
+  phone: string;
   departmentId: string;
   nickname: string;
   teamName: string | null;
@@ -272,11 +272,10 @@ export async function createManualScore(input: {
   }
   if (!isSupabaseConfigured()) throw new Error("Supabase 환경 변수가 설정되지 않았습니다.");
 
-  const rows = await supabaseRest<UpsertScoreRow[]>("rpc/upsert_admin_score_v2", {
+  const rows = await supabaseRest<UpsertScoreRow[]>("rpc/upsert_admin_score_v3", {
     method: "POST",
     body: JSON.stringify({
-      p_student_number: input.studentId,
-      p_representative_phone: input.representativePhone,
+      p_phone: input.phone,
       p_game_id: input.gameId,
       p_department_id: input.departmentId,
       p_nickname: input.nickname,
@@ -316,7 +315,7 @@ export async function updateAdminScore(
   }
   if (!isSupabaseConfigured()) throw new Error("Supabase 환경 변수가 설정되지 않았습니다.");
 
-  const rows = await supabaseRest<UpdatedScoreRow[]>("rpc/update_admin_score_v2", {
+  const rows = await supabaseRest<UpdatedScoreRow[]>("rpc/update_admin_score_v3", {
     method: "POST",
     body: JSON.stringify({
       p_score_id: scoreId,
@@ -333,9 +332,7 @@ export async function updateAdminScore(
     sessionId: row.result_score_id,
     playerId: row.result_participant_id,
     participantKind: row.result_participant_kind,
-    studentNumber: row.result_student_number,
-    studentNickname: row.result_student_nickname,
-    representativePhone: row.result_representative_phone,
+    participantPhone: row.result_participant_phone,
     teamName: row.result_team_name,
     gameId: row.result_game_id,
     departmentId: row.result_department_id,

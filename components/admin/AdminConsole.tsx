@@ -16,7 +16,7 @@ type Snapshot = {
   records: AdminScoreRecord[];
 };
 
-type StudentLookupState = "idle" | "loading" | "new" | "found" | "error";
+type ParticipantLookupState = "idle" | "loading" | "new" | "found" | "error";
 
 type ManualScoreResponse = {
   error?: string;
@@ -61,9 +61,7 @@ function formatPhone(value: string | null) {
 }
 
 function getRecordIdentifier(record: AdminScoreRecord) {
-  return record.participantKind === "team"
-    ? formatPhone(record.representativePhone)
-    : (record.studentNumber ?? "미등록");
+  return formatPhone(record.participantPhone);
 }
 
 export function AdminConsole() {
@@ -75,7 +73,7 @@ export function AdminConsole() {
   const [submitting, setSubmitting] = useState(false);
   const [busyScoreId, setBusyScoreId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<EditForm | null>(null);
-  const [studentLookup, setStudentLookup] = useState<StudentLookupState>("idle");
+  const [participantLookup, setParticipantLookup] = useState<ParticipantLookupState>("idle");
   const identifierRef = useRef<HTMLInputElement>(null);
   const departmentRef = useRef<HTMLInputElement>(null);
   const nicknameRef = useRef<HTMLInputElement>(null);
@@ -84,8 +82,7 @@ export function AdminConsole() {
   const [manualScore, setManualScore] = useState({
     gameId: games[0]?.id ?? "",
     departmentId: activeDepartments[0]?.id ?? "",
-    studentId: "",
-    representativePhone: "",
+    phone: "",
     nickname: "",
     teamName: "",
     score: "",
@@ -149,44 +146,52 @@ export function AdminConsole() {
   }, [hasSnapshot, load]);
 
   useEffect(() => {
-    if (selectedGameIsTeam) return;
-    const studentId = manualScore.studentId;
-    if (studentId.length < 6) return;
+    const phone = manualScore.phone;
+    if (phone.length < 10) return;
+    const participantKind = selectedGameIsTeam ? "team" : "individual";
 
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
-      setStudentLookup("loading");
+      setParticipantLookup("loading");
       try {
-        const response = await fetch(`/api/admin/students/${studentId}`, {
+        const response = await fetch(
+          `/api/admin/participants/${phone}?kind=${participantKind}`,
+          {
           cache: "no-store",
           signal: controller.signal,
-        });
+          },
+        );
         const body = (await response.json()) as {
           found?: boolean;
-          student?: { nickname: string; departmentId: string };
+          participant?: { displayName: string; departmentId: string };
         };
         if (!response.ok) {
           if (response.status === 401) setSnapshot(null);
-          setStudentLookup("error");
+          setParticipantLookup("error");
           return;
         }
-        if (body.found && body.student) {
+        if (body.found && body.participant) {
           setManualScore((current) =>
-            current.studentId === studentId
+            current.phone === phone
               ? {
                   ...current,
-                  nickname: body.student?.nickname ?? "",
-                  departmentId: body.student?.departmentId ?? current.departmentId,
+                  nickname: selectedGameIsTeam
+                    ? current.nickname
+                    : body.participant?.displayName ?? "",
+                  teamName: selectedGameIsTeam
+                    ? body.participant?.displayName ?? ""
+                    : current.teamName,
+                  departmentId: body.participant?.departmentId ?? current.departmentId,
                 }
               : current,
           );
-          setStudentLookup("found");
-          setDepartmentQuery(getDepartmentName(body.student.departmentId));
+          setParticipantLookup("found");
+          setDepartmentQuery(getDepartmentName(body.participant.departmentId));
         } else {
-          setStudentLookup("new");
+          setParticipantLookup("new");
         }
       } catch (lookupError) {
-        if ((lookupError as Error).name !== "AbortError") setStudentLookup("error");
+        if ((lookupError as Error).name !== "AbortError") setParticipantLookup("error");
       }
     }, 350);
 
@@ -194,7 +199,7 @@ export function AdminConsole() {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [manualScore.studentId, selectedGameIsTeam]);
+  }, [manualScore.phone, selectedGameIsTeam]);
 
   const login = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -229,8 +234,7 @@ export function AdminConsole() {
         body: JSON.stringify({
           game_id: manualScore.gameId,
           department_id: manualScore.departmentId,
-          student_id: selectedGameIsTeam ? null : manualScore.studentId,
-          representative_phone: selectedGameIsTeam ? manualScore.representativePhone : null,
+          phone: manualScore.phone,
           nickname: selectedGameIsTeam ? manualScore.teamName : manualScore.nickname,
           team_name: selectedGameIsTeam ? manualScore.teamName : null,
           score: Number(manualScore.score),
@@ -255,13 +259,12 @@ export function AdminConsole() {
 
       setManualScore((current) => ({
         ...current,
-        studentId: "",
-        representativePhone: "",
+        phone: "",
         nickname: "",
         teamName: "",
         score: "",
       }));
-      setStudentLookup("idle");
+      setParticipantLookup("idle");
       await load();
       window.setTimeout(() => identifierRef.current?.focus(), 0);
     } catch {
@@ -339,7 +342,7 @@ export function AdminConsole() {
       }
 
       if (editForm?.id === record.id) setEditForm(null);
-      setSuccess("선택한 점수를 순위에서 제외했습니다. 같은 학번과 게임을 다시 등록하면 복원됩니다.");
+      setSuccess("선택한 점수를 순위에서 제외했습니다. 같은 전화번호와 게임을 다시 등록하면 복원됩니다.");
       await load();
     } catch {
       setError("점수 삭제 요청에 실패했습니다. 잠시 후 다시 시도해주세요.");
@@ -415,8 +418,8 @@ export function AdminConsole() {
           <h2>점수 직접 등록</h2>
           <p>
             {selectedGameIsTeam
-              ? "대표자 전화번호로 팀을 확인하고, 같은 팀명의 팀게임 3개를 합산합니다."
-              : "학번으로 개인을 확인하고, 개인게임 2개의 최고 점수를 합산합니다."}
+              ? "대표자 전화번호로 팀을 확인하고, 해당 팀의 팀게임 3개를 합산합니다."
+              : "전화번호로 개인을 확인하고, 개인게임 2개의 최고 점수를 합산합니다."}
           </p>
         </div>
 
@@ -429,12 +432,11 @@ export function AdminConsole() {
                   type="button"
                   aria-pressed={manualScore.gameId === game.id}
                   onClick={() => {
-                    setStudentLookup("idle");
+                    setParticipantLookup("idle");
                     setManualScore((current) => ({
                       ...current,
                       gameId: game.id,
-                      studentId: "",
-                      representativePhone: "",
+                      phone: "",
                       nickname: "",
                       teamName: "",
                       score: "",
@@ -452,22 +454,22 @@ export function AdminConsole() {
 
           <div className="admin-score-fields">
             <label>
-              {selectedGameIsTeam ? "대표자 전화번호" : "학번"}
+              {selectedGameIsTeam ? "대표자 전화번호" : "전화번호"}
               <input
                 ref={identifierRef}
                 type="text"
-                inputMode={selectedGameIsTeam ? "tel" : "numeric"}
-                autoComplete="off"
-                placeholder={selectedGameIsTeam ? "01012345678" : "숫자 6~12자리"}
-                value={selectedGameIsTeam ? manualScore.representativePhone : manualScore.studentId}
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="01012345678"
+                value={manualScore.phone}
                 onChange={(event) => {
-                  const digits = event.target.value.replace(/\D/g, "").slice(0, 12);
-                  setStudentLookup("idle");
+                  const digits = event.target.value.replace(/\D/g, "").slice(0, 11);
+                  setParticipantLookup("idle");
                   setManualScore((current) => ({
                     ...current,
-                    studentId: selectedGameIsTeam ? "" : digits,
-                    representativePhone: selectedGameIsTeam ? digits : "",
-                    nickname: selectedGameIsTeam || digits === current.studentId ? current.nickname : "",
+                    phone: digits,
+                    nickname: selectedGameIsTeam || digits === current.phone ? current.nickname : "",
+                    teamName: selectedGameIsTeam && digits !== current.phone ? "" : current.teamName,
                   }));
                 }}
                 onKeyDown={(event) => {
@@ -603,24 +605,24 @@ export function AdminConsole() {
           </div>
 
           <div className="admin-lookup-slot" aria-live="polite">
-            {studentLookup === "loading" && (
+            {participantLookup === "loading" && (
               <p className="form-info-inline" role="status">
-                ⏳ 학번을 조회하고 있습니다...
+                ⏳ 전화번호를 조회하고 있습니다...
               </p>
             )}
-            {studentLookup === "found" && (
+            {participantLookup === "found" && (
               <p className="form-success-inline" role="status">
-                ✓ 기존 학생입니다. 닉네임과 학과를 자동으로 불러왔습니다.
+                ✓ 기존 {selectedGameIsTeam ? "팀" : "참가자"}입니다. 이름과 학과를 자동으로 불러왔습니다.
               </p>
             )}
-            {studentLookup === "new" && (
+            {participantLookup === "new" && (
               <p className="form-info-inline" role="status">
-                ℹ 처음 등록하는 학번입니다. 학과와 닉네임을 입력해주세요.
+                ℹ 처음 등록하는 전화번호입니다. 학과와 {selectedGameIsTeam ? "팀명" : "닉네임"}을 입력해주세요.
               </p>
             )}
-            {studentLookup === "error" && (
+            {participantLookup === "error" && (
               <p className="form-error-inline" role="alert">
-                ✕ 학번 조회에 실패했습니다. 잠시 후 다시 입력해주세요.
+                ✕ 전화번호 조회에 실패했습니다. 잠시 후 다시 입력해주세요.
               </p>
             )}
           </div>
@@ -631,7 +633,7 @@ export function AdminConsole() {
           <button
             className="pressable-button pressable-orange admin-score-submit"
             type="submit"
-            disabled={submitting || studentLookup === "loading"}
+            disabled={submitting || participantLookup === "loading"}
           >
             {submitting ? "등록 중" : "점수 등록"}
           </button>
@@ -646,7 +648,7 @@ export function AdminConsole() {
           <p>최근 수정 순 · 총 {snapshot.records.length}건</p>
         </div>
         <p className="admin-records-note">
-          개인은 학번, 팀은 대표자 전화번호로 관리합니다. 학과와 이름 수정은 해당 개인 또는 팀의 모든 기록에 반영됩니다.
+          개인과 팀 모두 전화번호로 관리합니다. 학과와 이름 수정은 해당 개인 또는 팀의 모든 기록에 반영됩니다.
         </p>
 
         {snapshot.records.length === 0 ? (
@@ -662,7 +664,7 @@ export function AdminConsole() {
                 <thead>
                   <tr>
                     <th>게임</th>
-                    <th>학번 / 대표자 전화번호</th>
+                    <th>전화번호</th>
                     <th>닉네임/팀명</th>
                     <th>학과</th>
                     <th>점수</th>
@@ -860,7 +862,7 @@ export function AdminConsole() {
                       <>
                         <div className="admin-record-card-meta">
                           <div>
-                            <span>{record.participantKind === "team" ? "대표자 전화번호: " : "학번: "}</span>
+                            <span>{record.participantKind === "team" ? "대표자 전화번호: " : "전화번호: "}</span>
                             <strong>{getRecordIdentifier(record)}</strong>
                           </div>
                           <div>

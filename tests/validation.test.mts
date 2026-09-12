@@ -4,7 +4,7 @@ import { isValidScoreId, validateAdminScore, validateAdminScoreEdit } from "@/li
 
 const baseScore = {
   game_id: "timing",
-  student_id: "20260001",
+  phone: "010-1234-5678",
   department_id: "ai-computer",
   nickname: "테스터",
   score: 100,
@@ -24,14 +24,25 @@ test("팀전에는 별도 팀명이 필요하다", () => {
     ...baseScore,
     game_id: "flappy",
     team_name: "청룡팀",
-    representative_phone: "010-1234-5678",
   });
   assert.equal(valid.ok, true);
   if (valid.ok) {
     assert.equal(valid.value.teamName, "청룡팀");
-    assert.equal(valid.value.representativePhone, "01012345678");
-    assert.equal(valid.value.studentId, null);
+    assert.equal(valid.value.phone, "01012345678");
   }
+});
+
+test("개인전과 팀전 모두 올바른 전화번호가 필요하다", () => {
+  assert.equal(validateAdminScore({ ...baseScore, phone: "20260001" }).ok, false);
+  assert.equal(
+    validateAdminScore({
+      ...baseScore,
+      game_id: "flappy",
+      phone: "1234",
+      team_name: "청룡팀",
+    }).ok,
+    false,
+  );
 });
 
 test("점수 수정은 해당 게임의 최대 점수를 적용한다", () => {
