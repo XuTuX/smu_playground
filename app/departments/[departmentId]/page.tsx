@@ -104,7 +104,7 @@ export default async function DepartmentDetailPage({
               title="아직 등록된 게임 기록이 없어요!"
               description={`${department.name} 학생 여러분, 부스에서 미니게임에 도전해 우리 과 첫 기록을 세워보세요!`}
               actionText="5종 게임 보러가기"
-              actionHref="/?tab=game"
+              actionHref="/#game-rankings"
             />
           </RetroCard>
         </section>

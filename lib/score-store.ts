@@ -126,7 +126,7 @@ const getCachedPublicScoreRows = unstable_cache(
 
 export async function getScoreSnapshot(): Promise<ScoreSnapshot> {
   const forceMock = await isMockModeActive();
-  if (forceMock || !isSupabaseConfigured()) {
+  if (forceMock) {
     const scores = getMockScores();
     return {
       scores,
@@ -135,6 +135,18 @@ export async function getScoreSnapshot(): Promise<ScoreSnapshot> {
         state: "mock",
         totalRows: scores.length,
         error: null,
+      },
+    };
+  }
+
+  if (!isSupabaseConfigured()) {
+    return {
+      scores: [],
+      status: {
+        mode: "supabase",
+        state: "error",
+        totalRows: 0,
+        error: "Supabase 환경 변수가 설정되지 않았습니다.",
       },
     };
   }
@@ -177,7 +189,8 @@ export async function getAllScores() {
 
 export async function getAdminScoreRecords(): Promise<AdminScoreRecord[]> {
   const forceMock = await isMockModeActive();
-  if (forceMock || !isSupabaseConfigured()) return getMockAdminScoreRecords();
+  if (forceMock) return getMockAdminScoreRecords();
+  if (!isSupabaseConfigured()) throw new Error("Supabase 환경 변수가 설정되지 않았습니다.");
 
   try {
     const select = [
@@ -206,9 +219,10 @@ export async function getAdminScoreRecords(): Promise<AdminScoreRecord[]> {
 }
 
 export async function getStudentProfile(studentNumber: string) {
-  if (await isMockModeActive() || !isSupabaseConfigured()) {
+  if (await isMockModeActive()) {
     return getMockStudentProfile(studentNumber);
   }
+  if (!isSupabaseConfigured()) throw new Error("Supabase 환경 변수가 설정되지 않았습니다.");
 
   const rows = await supabaseRest<SupabaseStudentRow[]>(
     `students?select=id,student_number,nickname,department_id&student_number=eq.${encodeURIComponent(studentNumber)}&limit=1`,
@@ -230,12 +244,13 @@ export async function createManualScore(input: {
   teamName: string | null;
   score: number;
 }) {
-  if (await isMockModeActive() || !isSupabaseConfigured()) {
+  if (await isMockModeActive()) {
     return createMockManualScore({
       ...input,
       deviceId: input.gameId,
     });
   }
+  if (!isSupabaseConfigured()) throw new Error("Supabase 환경 변수가 설정되지 않았습니다.");
 
   const rows = await supabaseRest<UpsertScoreRow[]>("rpc/upsert_admin_score", {
     method: "POST",
@@ -271,13 +286,14 @@ export async function updateAdminScore(
   scoreId: string,
   input: { departmentId: string; displayName: string; score: number },
 ) {
-  if (await isMockModeActive() || !isSupabaseConfigured()) {
+  if (await isMockModeActive()) {
     return updateMockAdminScore(scoreId, {
       departmentId: input.departmentId,
       nickname: input.displayName,
       score: input.score,
     });
   }
+  if (!isSupabaseConfigured()) throw new Error("Supabase 환경 변수가 설정되지 않았습니다.");
 
   const rows = await supabaseRest<UpdatedScoreRow[]>("rpc/update_admin_score", {
     method: "POST",
@@ -307,7 +323,8 @@ export async function updateAdminScore(
 }
 
 export async function deleteAdminScore(scoreId: string) {
-  if (await isMockModeActive() || !isSupabaseConfigured()) return deleteMockAdminScore(scoreId);
+  if (await isMockModeActive()) return deleteMockAdminScore(scoreId);
+  if (!isSupabaseConfigured()) throw new Error("Supabase 환경 변수가 설정되지 않았습니다.");
 
   return supabaseRest<boolean>("rpc/delete_admin_score", {
     method: "POST",

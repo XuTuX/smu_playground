@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Jua } from "next/font/google";
-import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
@@ -24,7 +23,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <a href="#main-content" className="skip-link">본문 바로가기</a>
         <Header />
         <main className="page-root" id="main-content">{children}</main>
-        <Footer />
         <Analytics />
       </body>
     </html>

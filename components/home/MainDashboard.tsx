@@ -12,12 +12,11 @@ type MainDashboardProps = {
   scores: ScoreRecord[];
 };
 
-type MainTabKey = "dept-ranking" | "player-ranking" | "game-ranking";
+type MainTabKey = "dept-ranking" | "player-ranking";
 
 const mainTabs: Array<{ key: MainTabKey; label: string }> = [
   { key: "dept-ranking", label: "학과 순위" },
   { key: "player-ranking", label: "개인 순위" },
-  { key: "game-ranking", label: "게임별 순위" },
 ];
 
 export function MainDashboard({
@@ -30,9 +29,7 @@ export function MainDashboard({
   const activeTab: MainTabKey =
     tabParam === "player"
       ? "player-ranking"
-      : tabParam === "game"
-        ? "game-ranking"
-        : "dept-ranking";
+      : "dept-ranking";
   const departmentParam = searchParams.get("dept");
   const selectedDeptId =
     activeTab === "dept-ranking" &&
@@ -47,14 +44,10 @@ export function MainDashboard({
 
   const navigateDashboard = (
     tab: MainTabKey,
-    options: { departmentId?: string; gameId?: string } = {},
+    options: { departmentId?: string } = {},
   ) => {
     const params = new URLSearchParams();
     if (tab === "player-ranking") params.set("tab", "player");
-    if (tab === "game-ranking") {
-      params.set("tab", "game");
-      if (options.gameId) params.set("game", options.gameId);
-    }
     if (tab === "dept-ranking" && options.departmentId) {
       params.set("tab", "department");
       params.set("dept", options.departmentId);
@@ -62,6 +55,10 @@ export function MainDashboard({
 
     const query = params.toString();
     window.history.pushState(null, "", query ? `/?${query}` : "/");
+  };
+
+  const navigateGame = (gameId: string) => {
+    window.history.pushState(null, "", `/?game=${encodeURIComponent(gameId)}#game-rankings`);
   };
 
   const handleMainTabKeyDown = (
@@ -77,9 +74,7 @@ export function MainDashboard({
 
     event.preventDefault();
     const nextTab = mainTabs[nextIndex];
-    navigateDashboard(nextTab.key, {
-      gameId: nextTab.key === "game-ranking" ? selectedGameId : undefined,
-    });
+    navigateDashboard(nextTab.key);
     window.requestAnimationFrame(() => {
       document.getElementById(`dashboard-tab-${nextTab.key}`)?.focus();
     });
@@ -98,7 +93,7 @@ export function MainDashboard({
 
     event.preventDefault();
     const nextGame = games[nextIndex];
-    navigateDashboard("game-ranking", { gameId: nextGame.id });
+    navigateGame(nextGame.id);
     window.requestAnimationFrame(() => {
       document.getElementById(`game-filter-${nextGame.id}`)?.focus();
     });
@@ -260,11 +255,7 @@ export function MainDashboard({
               type="button"
               className={`minimal-tab-btn${isActive ? " is-active" : ""}`}
               id={`dashboard-tab-${tab.key}`}
-              onClick={() =>
-                navigateDashboard(tab.key, {
-                  gameId: tab.key === "game-ranking" ? selectedGameId : undefined,
-                })
-              }
+              onClick={() => navigateDashboard(tab.key)}
               onKeyDown={(event) => handleMainTabKeyDown(event, index)}
               role="tab"
               aria-controls={`dashboard-panel-${tab.key}`}
@@ -391,23 +382,6 @@ export function MainDashboard({
                 >
                   ← 전체 학과 순위
                 </button>
-
-                <div className="minimal-dept-chips" aria-label="다른 학과 선택">
-                  {standings.map((st) => (
-                    <button
-                      type="button"
-                      className={`minimal-chip-btn${st.departmentId === selectedDeptId ? " is-active" : ""}`}
-                      onClick={() =>
-                        navigateDashboard("dept-ranking", {
-                          departmentId: st.departmentId,
-                        })
-                      }
-                      key={st.departmentId}
-                    >
-                      {st.departmentName}
-                    </button>
-                  ))}
-                </div>
               </div>
 
               <div className="minimal-detail-header">
@@ -571,16 +545,15 @@ export function MainDashboard({
         </section>
       )}
 
-      {/* ========================================================
-          TAB 4: 5종 게임별 순위
-         ======================================================== */}
-      {activeTab === "game-ranking" && (
-        <section
-          className="minimal-view-panel"
-          id="dashboard-panel-game-ranking"
-          role="tabpanel"
-          aria-labelledby="dashboard-tab-game-ranking"
-        >
+      <section
+        className="minimal-view-panel standalone-game-ranking"
+        id="game-rankings"
+        aria-labelledby="game-rankings-title"
+      >
+          <div className="standalone-section-heading">
+            <h2 id="game-rankings-title">게임별 순위</h2>
+          </div>
+
           {/* Game Selector Chips */}
           <div className="minimal-game-chips" role="tablist" aria-label="게임 선택">
             {games.map((g, index) => (
@@ -588,7 +561,7 @@ export function MainDashboard({
                 type="button"
                 className={`minimal-game-chip-btn accent-${g.accent}${g.id === selectedGameId ? " is-active" : ""}`}
                 id={`game-filter-${g.id}`}
-                onClick={() => navigateDashboard("game-ranking", { gameId: g.id })}
+                onClick={() => navigateGame(g.id)}
                 onKeyDown={(event) => handleGameTabKeyDown(event, index)}
                 key={g.id}
                 role="tab"
@@ -672,8 +645,7 @@ export function MainDashboard({
               </div>
             </div>
           </div>
-        </section>
-      )}
+      </section>
     </div>
   );
 }

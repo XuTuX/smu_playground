@@ -43,7 +43,7 @@ export default async function GameDetailPage({
     <div className="site-shell game-detail-page">
       <RankingAutoRefresh />
       <div className="page-back-nav">
-        <PressableLink href="/?tab=game" className="pressable-cream page-back-button">
+        <PressableLink href="/#game-rankings" className="pressable-cream page-back-button">
           ← 5종 게임 목록
         </PressableLink>
       </div>
@@ -100,7 +100,7 @@ export default async function GameDetailPage({
               title="아직 등록된 기록이 없어요!"
               description={`${game.name} 부스에 방문해서 오늘의 첫 번째 1위 기록을 세워보세요!`}
               actionText="다른 게임 순위 보기"
-              actionHref="/?tab=game"
+              actionHref="/#game-rankings"
             />
           </RetroCard>
         </section>

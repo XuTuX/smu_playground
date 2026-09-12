@@ -24,6 +24,7 @@ export async function Header() {
           <Link href="/" className="header-nav-link">대시보드</Link>
           <Link href="/departments" className="header-nav-link">학과 순위</Link>
           <Link href="/ranking" className="header-nav-link">참가자 순위</Link>
+          <Link href="/#game-rankings" className="header-nav-link">게임별 순위</Link>
         </nav>
 
         <div className="header-right">

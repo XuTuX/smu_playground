@@ -129,7 +129,7 @@ declare
   v_team_name text := nullif(btrim(p_team_name), '');
   v_student_number text := btrim(p_student_number);
 begin
-  if v_student_number !~ '^[0-9]{6,12}$' then
+  if v_student_number is null or v_student_number !~ '^[0-9]{6,12}$' then
     raise exception '학번은 숫자 6~12자리여야 합니다.' using errcode = '22023';
   end if;
 
@@ -147,7 +147,8 @@ begin
     raise exception '점수는 0~% 정수여야 합니다.', v_max_score using errcode = '22023';
   end if;
 
-  if char_length(v_nickname) < 2
+  if v_nickname is null
+     or char_length(v_nickname) < 2
      or char_length(v_nickname) > 12
      or v_nickname ~ '[<>[:cntrl:]]' then
     raise exception '닉네임은 특수 제어문자 없이 2~12자로 입력해주세요.' using errcode = '22023';
@@ -213,7 +214,11 @@ begin
     returning * into v_score;
 
     insert into public.score_audit_log(score_id, action, after_data)
-    values (v_score.id, 'create', to_jsonb(v_score));
+    values (
+      v_score.id,
+      'create',
+      jsonb_build_object('score', to_jsonb(v_score), 'student', to_jsonb(v_student))
+    );
 
     result_status := 'created';
     result_previous_score := null;
@@ -231,7 +236,12 @@ begin
       returning * into v_score;
       result_status := 'created';
       insert into public.score_audit_log(score_id, action, before_data, after_data)
-      values (v_score.id, 'restore', v_before, to_jsonb(v_score));
+      values (
+        v_score.id,
+        'restore',
+        jsonb_build_object('score', v_before, 'student', to_jsonb(v_student)),
+        jsonb_build_object('score', to_jsonb(v_score), 'student', to_jsonb(v_student))
+      );
     elsif p_score > v_score.score then
       update public.scores
          set score = p_score,
@@ -241,7 +251,12 @@ begin
       returning * into v_score;
       result_status := 'updated';
       insert into public.score_audit_log(score_id, action, before_data, after_data)
-      values (v_score.id, 'update', v_before, to_jsonb(v_score));
+      values (
+        v_score.id,
+        'update',
+        jsonb_build_object('score', v_before, 'student', to_jsonb(v_student)),
+        jsonb_build_object('score', to_jsonb(v_score), 'student', to_jsonb(v_student))
+      );
     else
       if v_ranking_mode = 'team' and v_score.team_name is distinct from v_team_name then
         update public.scores
@@ -250,7 +265,12 @@ begin
          where id = v_score.id
         returning * into v_score;
         insert into public.score_audit_log(score_id, action, before_data, after_data)
-        values (v_score.id, 'update', v_before, to_jsonb(v_score));
+        values (
+          v_score.id,
+          'update',
+          jsonb_build_object('score', v_before, 'student', to_jsonb(v_student)),
+          jsonb_build_object('score', to_jsonb(v_score), 'student', to_jsonb(v_student))
+        );
       end if;
       result_status := 'kept';
     end if;
@@ -272,6 +292,47 @@ $$;
 revoke all on function public.upsert_admin_score(text, text, text, text, text, integer)
   from public, anon, authenticated;
 grant execute on function public.upsert_admin_score(text, text, text, text, text, integer)
+  to service_role;
+
+-- Keep the previous five-argument RPC working during a rolling deployment.
+-- The old UI used p_nickname as the team display name, so forwarding it as
+-- p_team_name preserves the existing behavior until every server is updated.
+create function public.upsert_admin_score(
+  p_student_number text,
+  p_game_id text,
+  p_department_id text,
+  p_nickname text,
+  p_score integer
+)
+returns table (
+  result_status text,
+  result_previous_score integer,
+  result_score_id uuid,
+  result_student_id uuid,
+  result_nickname text,
+  result_department_id text,
+  result_game_id text,
+  result_score integer,
+  result_updated_at timestamptz
+)
+language sql
+security invoker
+set search_path = ''
+as $$
+  select *
+    from public.upsert_admin_score(
+      p_student_number,
+      p_game_id,
+      p_department_id,
+      p_nickname,
+      p_nickname,
+      p_score
+    );
+$$;
+
+revoke all on function public.upsert_admin_score(text, text, text, text, integer)
+  from public, anon, authenticated;
+grant execute on function public.upsert_admin_score(text, text, text, text, integer)
   to service_role;
 
 drop function if exists public.update_admin_score(uuid, text, text, integer);
@@ -302,6 +363,7 @@ declare
   v_score public.scores%rowtype;
   v_student public.students%rowtype;
   v_before_score jsonb;
+  v_before_student jsonb;
   v_max_score integer;
   v_ranking_mode text;
   v_display_name text := btrim(p_display_name);
@@ -316,6 +378,11 @@ begin
 
   if not found then return; end if;
   v_before_score := to_jsonb(v_score);
+
+  select to_jsonb(s)
+    into v_before_student
+    from public.students as s
+   where s.id = v_score.student_id;
 
   select g.max_score, g.ranking_mode
     into v_max_score, v_ranking_mode
@@ -333,7 +400,8 @@ begin
   ) then
     raise exception '활성 학과를 선택해주세요.' using errcode = '22023';
   end if;
-  if char_length(v_display_name) < 2
+  if v_display_name is null
+     or char_length(v_display_name) < 2
      or char_length(v_display_name) > 12
      or v_display_name ~ '[<>[:cntrl:]]' then
     raise exception '표시 이름은 특수 제어문자 없이 2~12자로 입력해주세요.' using errcode = '22023';
@@ -354,7 +422,12 @@ begin
   returning * into v_score;
 
   insert into public.score_audit_log(score_id, action, before_data, after_data)
-  values (v_score.id, 'update', v_before_score, to_jsonb(v_score));
+  values (
+    v_score.id,
+    'update',
+    jsonb_build_object('score', v_before_score, 'student', v_before_student),
+    jsonb_build_object('score', to_jsonb(v_score), 'student', to_jsonb(v_student))
+  );
 
   return query select
     v_score.id,

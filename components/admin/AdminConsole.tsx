@@ -273,7 +273,7 @@ export function AdminConsole() {
 
   const removeScore = async (record: AdminScoreRecord) => {
     const confirmed = window.confirm(
-      `${record.studentNumber} · ${getGameName(record.gameId)} 점수 기록을 삭제할까요?`,
+      `${record.studentNumber} · ${getGameName(record.gameId)} 점수 기록을 순위에서 제외할까요? 같은 학번과 게임을 다시 등록하면 복원됩니다.`,
     );
     if (!confirmed) return;
 
@@ -292,7 +292,7 @@ export function AdminConsole() {
       }
 
       if (editForm?.id === record.id) setEditForm(null);
-      setSuccess("선택한 게임 점수만 삭제했습니다. 학생 정보는 유지됩니다.");
+      setSuccess("선택한 점수를 순위에서 제외했습니다. 같은 학번과 게임을 다시 등록하면 복원됩니다.");
       await load();
     } catch {
       setError("점수 삭제 요청에 실패했습니다. 잠시 후 다시 시도해주세요.");
@@ -545,7 +545,7 @@ export function AdminConsole() {
           <p>최근 수정 순 · 총 {snapshot.records.length}건</p>
         </div>
         <p className="admin-records-note">
-          개인 닉네임·학과 수정은 같은 학번의 개인 기록에 반영됩니다. 팀명은 해당 팀전 기록에만 반영되고, 목록은 최근 200건까지 표시됩니다.
+          학과 수정은 같은 학번의 모든 기록에 반영됩니다. 개인 닉네임은 개인 기록에, 팀명은 해당 팀전 기록에만 반영되며 목록은 최근 200건까지 표시됩니다.
         </p>
 
         {snapshot.records.length === 0 ? (
@@ -592,7 +592,12 @@ export function AdminConsole() {
                               form={`edit-score-${record.id}`}
                             />
                           ) : (
-                            record.nickname
+                            <span className="admin-record-display-name">
+                              {record.nickname}
+                              {isTeamGame(record.gameId) && (
+                                <small>대표 {record.studentNickname}</small>
+                              )}
+                            </span>
                           )}
                         </td>
                         <td>
@@ -761,9 +766,15 @@ export function AdminConsole() {
                             <strong>{record.studentNumber}</strong>
                           </div>
                           <div>
-                            <span>닉네임: </span>
+                            <span>{isTeamGame(record.gameId) ? "팀명: " : "닉네임: "}</span>
                             <strong>{record.nickname}</strong>
                           </div>
+                          {isTeamGame(record.gameId) && (
+                            <div>
+                              <span>대표자: </span>
+                              <strong>{record.studentNickname}</strong>
+                            </div>
+                          )}
                           <div>
                             <span>학과: </span>
                             <strong>{getDepartmentName(record.departmentId)}</strong>
