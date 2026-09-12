@@ -30,7 +30,7 @@ export function AllDepartmentsRankingView({
         </div>
 
         {/* Top 3 Podium */}
-        <TopThreePodium items={topThreeItems} theme="yellow" />
+        <TopThreePodium items={topThreeItems} />
       </header>
 
       {/* 4th Place and Below Ranking List */}

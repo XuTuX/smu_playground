@@ -45,7 +45,7 @@ export default async function DepartmentDetailPage({
       <div className="mb-5">
         <Link
           href="/departments"
-          className="inline-flex items-center text-sm font-bold text-stone-500 hover:text-stone-900 transition-colors"
+          className="inline-flex items-center text-sm font-bold text-stone-500 hover:text-stone-900 transition-colors -my-2 py-2 -ml-1 px-1 rounded-lg"
         >
           ← 전체 학과 순위
         </Link>

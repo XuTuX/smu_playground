@@ -86,7 +86,7 @@ export default async function GameDetailPage({
         </div>
 
         {/* Top 3 Podium */}
-        <TopThreePodium items={topThreeItems} theme={game.accent as any} />
+        <TopThreePodium items={topThreeItems} />
       </header>
 
       {/* 4th Place and Below Ranking List */}

@@ -30,7 +30,7 @@ export function AllPlayersRankingView({
         </div>
 
         {/* Top 3 Podium with individual game breakdowns */}
-        <TopThreePodium items={topThreeItems} theme="sky" />
+        <TopThreePodium items={topThreeItems} />
       </header>
 
       {/* 4th Place and Below Ranking List */}
@@ -83,7 +83,7 @@ export function AllPlayersRankingView({
                           <span aria-hidden="true">{game.emoji}</span>
                           <span className="text-stone-400 font-semibold">:</span>
                           <span className="font-black text-stone-900">
-                            {game.score.toLocaleString("ko-KR")}점
+                            {game.score.toLocaleString("ko-KR")}
                           </span>
                         </span>
                       ))}
