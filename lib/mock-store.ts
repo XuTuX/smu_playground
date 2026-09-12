@@ -10,7 +10,11 @@ import type {
   ScoreRecord,
 } from "@/lib/types";
 
-type StoredScoreRecord = ScoreRecord & { studentId?: string; teamName?: string | null };
+type StoredScoreRecord = ScoreRecord & {
+  studentId?: string;
+  teamName?: string | null;
+  representativePhone?: string | null;
+};
 
 type MockStudent = {
   id: string;
@@ -26,7 +30,7 @@ type MockStore = {
   students: MockStudent[];
 };
 
-const MOCK_SEED_VERSION = 3;
+const MOCK_SEED_VERSION = 4;
 
 declare global {
   var __smuPlaygroundStore: MockStore | undefined;
@@ -48,15 +52,30 @@ function getStore(): MockStore {
       })),
       scores: mockScores.map((score, index) => ({
         ...score,
-        playerId: `mock-student-${index + 1}`,
-        studentId: String(900001 + index),
+        playerId:
+          getGame(score.gameId)?.rankingMode === "team"
+            ? `mock-team-${score.nickname.toLocaleLowerCase("ko")}`
+            : `mock-student-${index + 1}`,
+        studentId:
+          getGame(score.gameId)?.rankingMode === "individual"
+            ? String(900001 + index)
+            : undefined,
+        teamName: getGame(score.gameId)?.rankingMode === "team" ? score.nickname : null,
+        representativePhone:
+          getGame(score.gameId)?.rankingMode === "team"
+            ? `010${String(10000000 + index).slice(-8)}`
+            : null,
       })),
-      students: mockScores.map((score, index) => ({
-        id: `mock-student-${index + 1}`,
-        studentNumber: String(900001 + index),
-        nickname: score.nickname,
-        departmentId: score.departmentId,
-      })),
+      students: mockScores.flatMap((score, index) =>
+        getGame(score.gameId)?.rankingMode === "individual"
+          ? [{
+              id: `mock-student-${index + 1}`,
+              studentNumber: String(900001 + index),
+              nickname: score.nickname,
+              departmentId: score.departmentId,
+            }]
+          : [],
+      ),
     };
   }
   return globalThis.__smuPlaygroundStore;
@@ -73,6 +92,7 @@ function toPublicScore(score: StoredScoreRecord): ScoreRecord {
     score: score.score,
     createdAt: score.createdAt,
     teamName: score.teamName ?? null,
+    representativePhone: score.representativePhone ?? null,
   };
 }
 
@@ -84,16 +104,18 @@ export function getAdminScoreRecords(): AdminScoreRecord[] {
   const store = getStore();
   return [...store.scores]
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .map((score) => ({
-      ...toPublicScore(score),
-      studentNumber:
-        store.students.find(({ id }) => id === score.playerId)?.studentNumber ??
-        score.studentId ??
-        "-",
-      studentNickname:
-        store.students.find(({ id }) => id === score.playerId)?.nickname ?? score.nickname,
-      teamName: score.teamName ?? null,
-    }));
+    .map((score) => {
+      const isTeam = getGame(score.gameId)?.rankingMode === "team";
+      const student = store.students.find(({ id }) => id === score.playerId);
+      return {
+        ...toPublicScore(score),
+        participantKind: isTeam ? ("team" as const) : ("individual" as const),
+        studentNumber: isTeam ? null : (student?.studentNumber ?? score.studentId ?? null),
+        studentNickname: isTeam ? null : (student?.nickname ?? score.nickname),
+        representativePhone: isTeam ? (score.representativePhone ?? null) : null,
+        teamName: score.teamName ?? (isTeam ? score.nickname : null),
+      };
+    });
 }
 
 export function getStudentProfile(studentId: string) {
@@ -214,7 +236,8 @@ export function registerGameSession(input: {
 export function createManualScore(input: {
   deviceId: string;
   gameId: string;
-  studentId: string;
+  studentId: string | null;
+  representativePhone?: string | null;
   departmentId: string;
   nickname: string;
   teamName?: string | null;
@@ -224,14 +247,55 @@ export function createManualScore(input: {
   const session = recordManualSession(input);
   const sessionId = session.id;
   const createdAt = session.createdAt;
+  const isTeam = getGame(input.gameId)?.rankingMode === "team";
+
+  if (isTeam) {
+    const normalizedTeamName = (input.teamName ?? "").trim().toLocaleLowerCase("ko");
+    const teamPlayerId = `mock-team-${normalizedTeamName}`;
+    const existing = store.scores.find(
+      (score) => score.playerId === teamPlayerId && score.gameId === input.gameId,
+    );
+
+    if (existing) {
+      const previousScore = existing.score;
+      existing.departmentId = input.departmentId;
+      existing.teamName = input.teamName;
+      existing.nickname = input.teamName ?? input.nickname;
+      existing.representativePhone = input.representativePhone;
+      if (input.score > existing.score) {
+        existing.sessionId = sessionId;
+        existing.score = input.score;
+        existing.createdAt = createdAt;
+        return { status: "updated" as const, previousScore, score: toPublicScore(existing) };
+      }
+      return { status: "kept" as const, previousScore, score: toPublicScore(existing) };
+    }
+
+    const teamScore: StoredScoreRecord = {
+      id: crypto.randomUUID(),
+      sessionId,
+      playerId: teamPlayerId,
+      gameId: input.gameId,
+      departmentId: input.departmentId,
+      nickname: input.teamName ?? input.nickname,
+      teamName: input.teamName,
+      representativePhone: input.representativePhone,
+      score: input.score,
+      createdAt,
+    };
+    store.scores.push(teamScore);
+    return { status: "created" as const, previousScore: null, score: toPublicScore(teamScore) };
+  }
+
+  const studentLookup = input.studentId ?? "";
   let student = store.students.find(
-    ({ studentNumber }) => studentNumber === input.studentId,
+    ({ studentNumber }) => studentNumber === studentLookup,
   );
 
   if (!student) {
     student = {
       id: crypto.randomUUID(),
-      studentNumber: input.studentId,
+      studentNumber: studentLookup,
       departmentId: input.departmentId,
       nickname: input.nickname,
     };
@@ -266,7 +330,7 @@ export function createManualScore(input: {
     sessionId,
     playerId: student.id,
     gameId: input.gameId,
-    studentId: input.studentId,
+    studentId: input.studentId ?? undefined,
     departmentId: student.departmentId,
     nickname: input.teamName ?? student.nickname,
     teamName: input.teamName ?? null,
@@ -285,12 +349,24 @@ export function updateAdminScore(
   const score = store.scores.find(({ id }) => id === scoreId);
   if (!score) return null;
 
+  const isTeam = getGame(score.gameId)?.rankingMode === "team";
+  if (isTeam) {
+    for (const teamScore of store.scores) {
+      if (teamScore.playerId === score.playerId) {
+        teamScore.departmentId = input.departmentId;
+        teamScore.teamName = input.nickname;
+        teamScore.nickname = input.nickname;
+      }
+    }
+    score.score = input.score;
+    score.createdAt = new Date().toISOString();
+    return getAdminScoreRecords().find(({ id }) => id === scoreId) ?? null;
+  }
+
   const student = store.students.find(({ id }) => id === score.playerId);
   if (!student) return null;
-
-  const isTeam = getGame(score.gameId)?.rankingMode === "team";
   student.departmentId = input.departmentId;
-  if (!isTeam) student.nickname = input.nickname;
+  student.nickname = input.nickname;
   for (const studentScore of store.scores) {
     if (studentScore.playerId === student.id) {
       studentScore.departmentId = input.departmentId;
@@ -298,10 +374,6 @@ export function updateAdminScore(
         studentScore.nickname = student.nickname;
       }
     }
-  }
-  if (isTeam) {
-    score.teamName = input.nickname;
-    score.nickname = input.nickname;
   }
   score.score = input.score;
   score.createdAt = new Date().toISOString();

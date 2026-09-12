@@ -5,9 +5,15 @@ type PlayerRankingProps = {
   standings: PlayerStanding[];
   linked?: boolean;
   mode?: "individual" | "team";
+  showGameName?: boolean;
 };
 
-export function PlayerRanking({ standings, linked = true, mode = "individual" }: PlayerRankingProps) {
+export function PlayerRanking({
+  standings,
+  linked = true,
+  mode = "individual",
+  showGameName = false,
+}: PlayerRankingProps) {
   if (standings.length === 0) {
     return <div className="ranking-empty-message">등록된 {mode === "team" ? "팀" : "개인"} 기록이 없습니다.</div>;
   }
@@ -37,14 +43,14 @@ export function PlayerRanking({ standings, linked = true, mode = "individual" }:
               <strong>{standing.nickname}</strong>
               <small>{standing.departmentName}</small>
             </div>
-            <em>{standing.gameName}</em>
+            {showGameName && <em>{standing.gameName}</em>}
             <b className="player-score-value">
               {standing.score.toLocaleString("ko-KR")}
               <small>점</small>
             </b>
           </>
         );
-        const className = `player-ranking-row player-rank-${standing.rank}${linked ? "" : " ranking-row-static"}`;
+        const className = `player-ranking-row player-rank-${standing.rank}${linked ? "" : " ranking-row-static"}${showGameName ? " has-game-name" : ""}`;
 
         return linked ? (
           <Link

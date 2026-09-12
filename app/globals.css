@@ -188,7 +188,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .game-high-score small { line-height: 1.6; }
 .game-ranking-card, .ranking-explorer-card { overflow: hidden; padding: 12px; }
 .player-ranking-list { display: grid; }
-.player-ranking-row { display: grid; grid-template-columns: 64px 1fr 110px 120px; align-items: center; min-height: 82px; border-bottom: 2px solid var(--ink); }
+.player-ranking-row { display: grid; grid-template-columns: 64px 1fr auto; gap: 16px; align-items: center; min-height: 82px; border-bottom: 2px solid var(--ink); }
+.player-ranking-row.has-game-name { grid-template-columns: 64px 1fr 110px 120px; }
 .player-ranking-row:last-child { border-bottom: 0; }
 .player-ranking-row:hover { background: rgba(246, 169, 194, 0.16); }
 .player-ranking-row > span { display: grid; width: 46px; height: 46px; place-items: center; border: 2px solid var(--ink); border-radius: 12px; background: var(--paper); font-family: var(--font-mono); font-weight: 900; }
@@ -289,6 +290,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .admin-score-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
 .admin-score-fields label { display: grid; gap: 8px; font-size: 14px; font-weight: 850; }
 .admin-score-fields input, .admin-score-fields select { width: 100%; min-width: 0; min-height: 50px; padding: 10px 12px; border: 2px solid var(--ink); border-radius: 10px; background: var(--paper); }
+.admin-department-combobox { position: relative; }
+.admin-department-options { position: absolute; z-index: 20; top: 82px; right: 0; left: 0; display: grid; overflow: hidden; border: 2px solid var(--ink); border-radius: 10px; background: var(--paper); box-shadow: 4px 4px 0 var(--ink); }
+.admin-department-options button { min-height: 44px; padding: 9px 12px; border: 0; border-bottom: 1px solid var(--ink); background: var(--paper); color: var(--ink); font-size: 14px; font-weight: 800; text-align: left; cursor: pointer; }
+.admin-department-options button:last-child { border-bottom: 0; }
+.admin-department-options button:hover, .admin-department-options button:focus-visible { background: var(--mint); outline: 0; }
 .form-success { margin: 0; padding: 11px 13px; border: 2px solid var(--ink); border-radius: 10px; background: var(--mint); font-size: 14px; }
 .admin-score-submit { justify-self: end; min-width: 160px; }
 .admin-terminals { margin-bottom: 38px; padding: 22px; border: var(--line); border-radius: 14px; background: var(--mint); }

@@ -48,25 +48,17 @@ export function GameRankingCardSection() {
     >
       <div className="grid grid-cols-1 md:grid-cols-6 gap-3 sm:gap-4 items-stretch">
         {/* Left Indicator Card */}
-        <div className="md:col-span-2 bg-white border border-stone-200/90 rounded-3xl p-5 sm:p-6 shadow-sm flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-stone-900 text-white flex items-center justify-center font-bold text-2xl shadow-sm shrink-0">
-              🎮
-            </div>
-            <div>
-              <h2 className="text-xl sm:text-2xl font-black text-stone-900 leading-snug">
-                게임별 순위보기
-              </h2>
-              <p className="text-sm font-semibold text-stone-500 mt-0.5">
-                각 게임별 랭킹을 확인해보세요!
-              </p>
-            </div>
+        <div className="md:col-span-2 bg-white border border-stone-200/90 rounded-3xl p-5 sm:p-6 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-stone-900 text-white flex items-center justify-center font-bold text-2xl shadow-sm shrink-0">
+            🎮
           </div>
-          <div
-            className="w-10 h-10 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-700 shrink-0"
-            aria-hidden="true"
-          >
-            ›
+          <div>
+            <h2 className="text-xl sm:text-2xl font-black text-stone-900 leading-snug">
+              게임별 순위보기
+            </h2>
+            <p className="text-sm font-semibold text-stone-500 mt-0.5">
+              각 게임별 랭킹을 확인해보세요!
+            </p>
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { departments } from "@/data/departments";
 import { games } from "@/data/games";
 import type { AdminScoreRecord } from "@/lib/types";
@@ -54,6 +54,18 @@ function formatUpdatedAt(value: string) {
   }).format(new Date(value));
 }
 
+function formatPhone(value: string | null) {
+  if (!value) return "미등록";
+  if (value.length === 11) return value.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3");
+  return value.replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3");
+}
+
+function getRecordIdentifier(record: AdminScoreRecord) {
+  return record.participantKind === "team"
+    ? formatPhone(record.representativePhone)
+    : (record.studentNumber ?? "미등록");
+}
+
 export function AdminConsole() {
   const [password, setPassword] = useState("");
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
@@ -64,17 +76,47 @@ export function AdminConsole() {
   const [busyScoreId, setBusyScoreId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<EditForm | null>(null);
   const [studentLookup, setStudentLookup] = useState<StudentLookupState>("idle");
+  const identifierRef = useRef<HTMLInputElement>(null);
+  const departmentRef = useRef<HTMLInputElement>(null);
+  const nicknameRef = useRef<HTMLInputElement>(null);
+  const teamNameRef = useRef<HTMLInputElement>(null);
+  const scoreRef = useRef<HTMLInputElement>(null);
   const [manualScore, setManualScore] = useState({
     gameId: games[0]?.id ?? "",
     departmentId: activeDepartments[0]?.id ?? "",
     studentId: "",
+    representativePhone: "",
     nickname: "",
     teamName: "",
     score: "",
   });
+  const [departmentQuery, setDepartmentQuery] = useState(
+    getDepartmentName(activeDepartments[0]?.id ?? ""),
+  );
 
   const selectedGame = games.find(({ id }) => id === manualScore.gameId) ?? games[0];
   const selectedGameIsTeam = selectedGame?.rankingMode === "team";
+  const matchingDepartments = useMemo(() => {
+    const query = departmentQuery.trim().toLocaleLowerCase("ko");
+    if (!query) return activeDepartments;
+    return activeDepartments.filter(({ name }) =>
+      name.toLocaleLowerCase("ko").includes(query),
+    );
+  }, [departmentQuery]);
+
+  const selectDepartment = useCallback((departmentId: string) => {
+    const department = activeDepartments.find(({ id }) => id === departmentId);
+    if (!department) return;
+    setDepartmentQuery(department.name);
+    setManualScore((current) => ({ ...current, departmentId }));
+  }, []);
+
+  const focusDepartment = () => {
+    window.setTimeout(() => {
+      departmentRef.current?.focus();
+      departmentRef.current?.select();
+    }, 0);
+  };
 
   const load = useCallback(async () => {
     try {
@@ -107,6 +149,7 @@ export function AdminConsole() {
   }, [hasSnapshot, load]);
 
   useEffect(() => {
+    if (selectedGameIsTeam) return;
     const studentId = manualScore.studentId;
     if (studentId.length < 6) return;
 
@@ -138,6 +181,7 @@ export function AdminConsole() {
               : current,
           );
           setStudentLookup("found");
+          setDepartmentQuery(getDepartmentName(body.student.departmentId));
         } else {
           setStudentLookup("new");
         }
@@ -185,8 +229,9 @@ export function AdminConsole() {
         body: JSON.stringify({
           game_id: manualScore.gameId,
           department_id: manualScore.departmentId,
-          student_id: manualScore.studentId,
-          nickname: manualScore.nickname,
+          student_id: selectedGameIsTeam ? null : manualScore.studentId,
+          representative_phone: selectedGameIsTeam ? manualScore.representativePhone : null,
+          nickname: selectedGameIsTeam ? manualScore.teamName : manualScore.nickname,
           team_name: selectedGameIsTeam ? manualScore.teamName : null,
           score: Number(manualScore.score),
         }),
@@ -211,12 +256,14 @@ export function AdminConsole() {
       setManualScore((current) => ({
         ...current,
         studentId: "",
+        representativePhone: "",
         nickname: "",
         teamName: "",
         score: "",
       }));
       setStudentLookup("idle");
       await load();
+      window.setTimeout(() => identifierRef.current?.focus(), 0);
     } catch {
       setError("점수 등록 요청에 실패했습니다. 잠시 후 다시 시도해주세요.");
     } finally {
@@ -273,7 +320,7 @@ export function AdminConsole() {
 
   const removeScore = async (record: AdminScoreRecord) => {
     const confirmed = window.confirm(
-      `${record.studentNumber} · ${getGameName(record.gameId)} 점수 기록을 순위에서 제외할까요? 같은 학번과 게임을 다시 등록하면 복원됩니다.`,
+      `${getRecordIdentifier(record)} · ${getGameName(record.gameId)} 점수 기록을 순위에서 제외할까요? 같은 참가자와 게임을 다시 등록하면 복원됩니다.`,
     );
     if (!confirmed) return;
 
@@ -368,8 +415,8 @@ export function AdminConsole() {
           <h2>점수 직접 등록</h2>
           <p>
             {selectedGameIsTeam
-              ? "협동 게임은 대표 학번과 팀명으로 등록합니다."
-              : "같은 학번과 게임은 가장 높은 점수 하나만 순위에 반영됩니다."}
+              ? "대표자 전화번호로 팀을 확인하고, 같은 팀명의 팀게임 3개를 합산합니다."
+              : "학번으로 개인을 확인하고, 개인게임 2개의 최고 점수를 합산합니다."}
           </p>
         </div>
 
@@ -387,10 +434,13 @@ export function AdminConsole() {
                       ...current,
                       gameId: game.id,
                       studentId: "",
+                      representativePhone: "",
                       nickname: "",
                       teamName: "",
                       score: "",
                     }));
+                    setDepartmentQuery(getDepartmentName(activeDepartments[0]?.id ?? ""));
+                    window.setTimeout(() => identifierRef.current?.focus(), 0);
                   }}
                   key={game.id}
                 >
@@ -402,70 +452,97 @@ export function AdminConsole() {
 
           <div className="admin-score-fields">
             <label>
-              {selectedGameIsTeam ? "대표 학번" : "학번"}
+              {selectedGameIsTeam ? "대표자 전화번호" : "학번"}
               <input
+                ref={identifierRef}
                 type="text"
-                inputMode="numeric"
+                inputMode={selectedGameIsTeam ? "tel" : "numeric"}
                 autoComplete="off"
-                placeholder="숫자 6~12자리"
-                value={manualScore.studentId}
+                placeholder={selectedGameIsTeam ? "01012345678" : "숫자 6~12자리"}
+                value={selectedGameIsTeam ? manualScore.representativePhone : manualScore.studentId}
                 onChange={(event) => {
-                  const studentId = event.target.value.replace(/\D/g, "").slice(0, 12);
+                  const digits = event.target.value.replace(/\D/g, "").slice(0, 12);
                   setStudentLookup("idle");
                   setManualScore((current) => ({
                     ...current,
-                    studentId,
-                    nickname: studentId === current.studentId ? current.nickname : "",
-                    departmentId:
-                      studentId === current.studentId
-                        ? current.departmentId
-                        : (activeDepartments[0]?.id ?? ""),
+                    studentId: selectedGameIsTeam ? "" : digits,
+                    representativePhone: selectedGameIsTeam ? digits : "",
+                    nickname: selectedGameIsTeam || digits === current.studentId ? current.nickname : "",
                   }));
+                }}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter") return;
+                  event.preventDefault();
+                  focusDepartment();
                 }}
                 required
               />
             </label>
 
-            <label>
+            <label className="admin-department-combobox">
               학과
-              <select
-                value={manualScore.departmentId}
-                onChange={(event) =>
-                  setManualScore((current) => ({ ...current, departmentId: event.target.value }))
-                }
-                disabled={studentLookup === "found"}
-                required
-              >
-                {activeDepartments.map((department) => (
-                  <option value={department.id} key={department.id}>
-                    {department.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label>
-              {selectedGameIsTeam ? "대표자 닉네임" : "닉네임"}
               <input
+                ref={departmentRef}
                 type="text"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded={matchingDepartments.length > 0 && departmentQuery !== getDepartmentName(manualScore.departmentId)}
+                aria-controls="admin-department-options"
                 autoComplete="off"
-                minLength={2}
-                maxLength={12}
-                placeholder="2~12자"
-                value={manualScore.nickname}
-                onChange={(event) =>
-                  setManualScore((current) => ({ ...current, nickname: event.target.value }))
-                }
-                readOnly={studentLookup === "found"}
-                disabled={selectedGameIsTeam && studentLookup === "loading"}
+                placeholder="학과명을 한글로 입력"
+                value={departmentQuery}
+                onChange={(event) => {
+                  const query = event.target.value;
+                  setDepartmentQuery(query);
+                  const exact = activeDepartments.find(({ name }) => name === query.trim());
+                  if (exact) {
+                    setManualScore((current) => ({ ...current, departmentId: exact.id }));
+                  }
+                }}
+                onFocus={(event) => event.currentTarget.select()}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter") return;
+                  event.preventDefault();
+                  const selected = matchingDepartments[0];
+                  if (!selected) {
+                    setError("입력한 학과를 찾을 수 없습니다.");
+                    return;
+                  }
+                  selectDepartment(selected.id);
+                  window.setTimeout(
+                    () => (selectedGameIsTeam ? teamNameRef.current : nicknameRef.current)?.focus(),
+                    0,
+                  );
+                }}
                 required
               />
+              {matchingDepartments.length > 0 &&
+                departmentQuery !== getDepartmentName(manualScore.departmentId) && (
+                  <span id="admin-department-options" className="admin-department-options" role="listbox">
+                    {matchingDepartments.slice(0, 6).map((department) => (
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={department.id === manualScore.departmentId}
+                        key={department.id}
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => {
+                          selectDepartment(department.id);
+                          (selectedGameIsTeam ? teamNameRef.current : nicknameRef.current)?.focus();
+                        }}
+                      >
+                        {department.name}
+                      </button>
+                    ))}
+                  </span>
+                )}
             </label>
 
-            {selectedGameIsTeam && (
+            {selectedGameIsTeam ? (
               <label>
                 팀명
                 <input
+                  ref={teamNameRef}
                   type="text"
                   autoComplete="off"
                   minLength={2}
@@ -475,6 +552,33 @@ export function AdminConsole() {
                   onChange={(event) =>
                     setManualScore((current) => ({ ...current, teamName: event.target.value }))
                   }
+                  onKeyDown={(event) => {
+                    if (event.key !== "Enter") return;
+                    event.preventDefault();
+                    scoreRef.current?.focus();
+                  }}
+                  required
+                />
+              </label>
+            ) : (
+              <label>
+                닉네임
+                <input
+                  ref={nicknameRef}
+                  type="text"
+                  autoComplete="off"
+                  minLength={2}
+                  maxLength={12}
+                  placeholder="2~12자"
+                  value={manualScore.nickname}
+                  onChange={(event) =>
+                    setManualScore((current) => ({ ...current, nickname: event.target.value }))
+                  }
+                  onKeyDown={(event) => {
+                    if (event.key !== "Enter") return;
+                    event.preventDefault();
+                    scoreRef.current?.focus();
+                  }}
                   required
                 />
               </label>
@@ -483,6 +587,7 @@ export function AdminConsole() {
             <label>
               점수
               <input
+                ref={scoreRef}
                 type="number"
                 min={0}
                 max={selectedGame?.maxScore ?? 9999}
@@ -505,16 +610,12 @@ export function AdminConsole() {
             )}
             {studentLookup === "found" && (
               <p className="form-success-inline" role="status">
-                {selectedGameIsTeam
-                  ? "✓ 기존 대표자의 닉네임과 학과를 불러왔습니다. 팀명만 입력해주세요."
-                  : "✓ 기존 학생입니다. 닉네임과 학과를 자동으로 불러왔습니다."}
+                ✓ 기존 학생입니다. 닉네임과 학과를 자동으로 불러왔습니다.
               </p>
             )}
             {studentLookup === "new" && (
               <p className="form-info-inline" role="status">
-                {selectedGameIsTeam
-                  ? "ℹ 처음 등록하는 대표 학번입니다. 대표자 닉네임·학과·팀명을 입력해주세요."
-                  : "ℹ 처음 등록하는 학번입니다. 학과와 닉네임을 입력해주세요."}
+                ℹ 처음 등록하는 학번입니다. 학과와 닉네임을 입력해주세요.
               </p>
             )}
             {studentLookup === "error" && (
@@ -545,7 +646,7 @@ export function AdminConsole() {
           <p>최근 수정 순 · 총 {snapshot.records.length}건</p>
         </div>
         <p className="admin-records-note">
-          학과 수정은 같은 학번의 모든 기록에 반영됩니다. 개인 닉네임은 개인 기록에, 팀명은 해당 팀전 기록에만 반영되며 목록은 최근 200건까지 표시됩니다.
+          개인은 학번, 팀은 대표자 전화번호로 관리합니다. 학과와 이름 수정은 해당 개인 또는 팀의 모든 기록에 반영됩니다.
         </p>
 
         {snapshot.records.length === 0 ? (
@@ -561,7 +662,7 @@ export function AdminConsole() {
                 <thead>
                   <tr>
                     <th>게임</th>
-                    <th>학번/대표</th>
+                    <th>학번 / 대표자 전화번호</th>
                     <th>닉네임/팀명</th>
                     <th>학과</th>
                     <th>점수</th>
@@ -577,7 +678,7 @@ export function AdminConsole() {
                         <td>
                           <strong>{getGameName(record.gameId)}</strong>
                         </td>
-                        <td>{record.studentNumber}</td>
+                        <td>{getRecordIdentifier(record)}</td>
                         <td>
                           {editing ? (
                             <input
@@ -594,9 +695,6 @@ export function AdminConsole() {
                           ) : (
                             <span className="admin-record-display-name">
                               {record.nickname}
-                              {isTeamGame(record.gameId) && (
-                                <small>대표 {record.studentNickname}</small>
-                              )}
                             </span>
                           )}
                         </td>
@@ -762,19 +860,13 @@ export function AdminConsole() {
                       <>
                         <div className="admin-record-card-meta">
                           <div>
-                            <span>학번: </span>
-                            <strong>{record.studentNumber}</strong>
+                            <span>{record.participantKind === "team" ? "대표자 전화번호: " : "학번: "}</span>
+                            <strong>{getRecordIdentifier(record)}</strong>
                           </div>
                           <div>
                             <span>{isTeamGame(record.gameId) ? "팀명: " : "닉네임: "}</span>
                             <strong>{record.nickname}</strong>
                           </div>
-                          {isTeamGame(record.gameId) && (
-                            <div>
-                              <span>대표자: </span>
-                              <strong>{record.studentNickname}</strong>
-                            </div>
-                          )}
                           <div>
                             <span>학과: </span>
                             <strong>{getDepartmentName(record.departmentId)}</strong>

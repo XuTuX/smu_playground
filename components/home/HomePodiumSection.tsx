@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { RankingPodiumCard, type PodiumItem } from "@/components/ranking/RankingPodiumCard";
 import { PlayerRankingDetailModal } from "@/components/ranking/PlayerRankingDetailModal";
@@ -25,13 +25,8 @@ export function HomePodiumSection({
   const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (modalParam === "player") {
-      setIsPlayerModalOpen(true);
-    } else if (modalParam === "team") {
-      setIsTeamModalOpen(true);
-    }
-  }, [modalParam]);
+  const playerModalOpen = isPlayerModalOpen || modalParam === "player";
+  const teamModalOpen = isTeamModalOpen || modalParam === "team";
 
   const handleClosePlayerModal = () => {
     setIsPlayerModalOpen(false);
@@ -135,14 +130,14 @@ export function HomePodiumSection({
 
       {/* Personal Ranking Modal with Game Breakdown */}
       <PlayerRankingDetailModal
-        isOpen={isPlayerModalOpen}
+        isOpen={playerModalOpen}
         onClose={handleClosePlayerModal}
         standings={detailedPlayerStandings}
       />
 
       {/* Team Ranking Modal */}
       <TeamRankingDetailModal
-        isOpen={isTeamModalOpen}
+        isOpen={teamModalOpen}
         onClose={handleCloseTeamModal}
         standings={teamStandings}
       />
