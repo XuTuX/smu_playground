@@ -33,22 +33,22 @@ const records = [
 
 test("선택한 게임의 기록만 표시한다", () => {
   assert.deepEqual(
-    filterAdminRecords(records, "flappy", "").map(({ id }) => id),
+    filterAdminRecords(records, "flappy", "").map(({ id }: AdminScoreRecord) => id),
     ["1", "2"],
   );
 });
 
 test("전화번호, 이름, 학과명으로 선택 게임 기록을 검색한다", () => {
   assert.deepEqual(
-    filterAdminRecords(records, "flappy", "010-1234").map(({ id }) => id),
+    filterAdminRecords(records, "flappy", "010-1234").map(({ id }: AdminScoreRecord) => id),
     ["1"],
   );
   assert.deepEqual(
-    filterAdminRecords(records, "flappy", "백호").map(({ id }) => id),
+    filterAdminRecords(records, "flappy", "백호").map(({ id }: AdminScoreRecord) => id),
     ["2"],
   );
   assert.deepEqual(
-    filterAdminRecords(records, "flappy", "AI컴퓨터").map(({ id }) => id),
+    filterAdminRecords(records, "flappy", "AI컴퓨터").map(({ id }: AdminScoreRecord) => id),
     ["1"],
   );
 });

@@ -59,53 +59,49 @@ export function AllTeamsRankingView({
             return (
               <div
                 key={team.id}
-                className="p-4 sm:p-6 bg-white rounded-3xl shadow-sm hover:shadow-md transition-all space-y-3"
+                className="p-4 sm:p-5 bg-white rounded-3xl shadow-sm hover:shadow-md transition-all flex items-center justify-between gap-4 flex-wrap"
               >
-                {/* Main Row */}
-                <div className="flex items-center justify-between gap-4 flex-wrap">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <span
-                      className={`w-11 h-11 rounded-2xl flex items-center justify-center text-base shrink-0 ${rankBadgeClass}`}
-                    >
-                      {medalEmoji || `${team.rank}위`}
-                    </span>
-                    <div className="min-w-0">
-                      <strong className="block text-lg sm:text-xl font-black text-stone-900 truncate">
+                {/* Left: Rank badge + Team name + Department + Inline Game Scores */}
+                <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                  <span
+                    className={`w-11 h-11 rounded-2xl flex items-center justify-center text-base shrink-0 ${rankBadgeClass}`}
+                  >
+                    {medalEmoji || `${team.rank}위`}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+                      <strong className="text-lg sm:text-xl font-black text-stone-900">
                         {team.teamName}
                       </strong>
-                      <span className="text-sm font-semibold text-stone-500 truncate block">
+                      <span className="text-sm font-semibold text-stone-500">
                         {team.departmentName}
                       </span>
+                      {/* Inline game scores: 이모티콘 : 점수 */}
+                      {team.gameScores.map((game) => (
+                        <span
+                          key={game.gameId}
+                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-stone-100/90 text-sm font-bold text-stone-700"
+                          title={`${game.gameName}: ${game.score.toLocaleString("ko-KR")}점`}
+                        >
+                          <span aria-hidden="true">{game.emoji}</span>
+                          <span className="text-stone-400 font-semibold">:</span>
+                          <span className="font-black text-stone-900">
+                            {game.score.toLocaleString("ko-KR")}점
+                          </span>
+                        </span>
+                      ))}
                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-stone-500">종합 점수</span>
-                    <b className="text-xl sm:text-2xl font-black text-stone-900">
-                      {team.score.toLocaleString("ko-KR")}
-                      <span className="text-sm font-bold ml-0.5">점</span>
-                    </b>
                   </div>
                 </div>
 
-                {/* Game Breakdown List: 각 게임별로 몇점인지 */}
-                {team.gameScores.length > 0 && (
-                  <div className="pt-3 border-t border-stone-100 flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-bold text-stone-400 mr-1">게임별 점수:</span>
-                    {team.gameScores.map((game) => (
-                      <div
-                        key={game.gameId}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-stone-50 text-sm font-semibold text-stone-700"
-                      >
-                        <span>{game.emoji}</span>
-                        <span className="font-bold text-stone-800">{game.gameName}</span>
-                        <b className="text-emerald-700 font-black ml-0.5">
-                          {game.score.toLocaleString("ko-KR")}점
-                        </b>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                {/* Right: Total Score */}
+                <div className="flex items-center gap-2 shrink-0 ml-auto">
+                  <span className="text-sm font-bold text-stone-500">종합 점수</span>
+                  <b className="text-xl sm:text-2xl font-black text-stone-900">
+                    {team.score.toLocaleString("ko-KR")}
+                    <span className="text-sm font-bold ml-0.5">점</span>
+                  </b>
+                </div>
               </div>
             );
           })

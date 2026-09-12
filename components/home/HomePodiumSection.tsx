@@ -42,37 +42,34 @@ export function HomePodiumSection({
     }
   };
 
-  // Convert Department Standings to Podium Items
-  const deptItems: PodiumItem[] = [1, 2, 3].map((rank) => {
-    const standing = departmentStandings.find((d) => d.rank === rank);
-    return {
-      rank: rank as 1 | 2 | 3,
-      primaryText: standing?.departmentName ?? (rank === 1 ? "1위 학과" : rank === 2 ? "2위 학과" : "3위 학과"),
-      score: standing?.totalScore ?? 0,
-    };
-  });
+  // Convert Department Standings to Podium Items (only actual records)
+  const deptItems: PodiumItem[] = departmentStandings
+    .filter((d) => d.rank <= 3)
+    .map((standing) => ({
+      rank: standing.rank as 1 | 2 | 3,
+      primaryText: standing.departmentName,
+      score: standing.totalScore,
+    }));
 
-  // Convert Player Standings to Podium Items
-  const playerItems: PodiumItem[] = [1, 2, 3].map((rank) => {
-    const standing = detailedPlayerStandings.find((p) => p.rank === rank);
-    return {
-      rank: rank as 1 | 2 | 3,
-      primaryText: standing?.nickname ?? (rank === 1 ? "1위 참가자" : rank === 2 ? "2위 참가자" : "3위 참가자"),
-      subText: standing?.departmentName,
-      score: standing?.totalScore ?? 0,
-    };
-  });
+  // Convert Player Standings to Podium Items (only actual records)
+  const playerItems: PodiumItem[] = detailedPlayerStandings
+    .filter((p) => p.rank <= 3)
+    .map((standing) => ({
+      rank: standing.rank as 1 | 2 | 3,
+      primaryText: standing.nickname,
+      subText: standing.departmentName,
+      score: standing.totalScore,
+    }));
 
-  // Convert Team Standings to Podium Items
-  const teamItems: PodiumItem[] = [1, 2, 3].map((rank) => {
-    const standing = teamStandings.find((t) => t.rank === rank);
-    return {
-      rank: rank as 1 | 2 | 3,
-      primaryText: standing?.teamName ?? (rank === 1 ? "1위 팀" : rank === 2 ? "2위 팀" : "3위 팀"),
-      subText: standing ? `(${standing.departmentName})` : undefined,
-      score: standing?.score ?? 0,
-    };
-  });
+  // Convert Team Standings to Podium Items (only actual records)
+  const teamItems: PodiumItem[] = teamStandings
+    .filter((t) => t.rank <= 3)
+    .map((standing) => ({
+      rank: standing.rank as 1 | 2 | 3,
+      primaryText: standing.teamName,
+      subText: `(${standing.departmentName})`,
+      score: standing.score,
+    }));
 
   return (
     <section className="mt-4 sm:mt-6" aria-label="청룡체전 핵심 순위">

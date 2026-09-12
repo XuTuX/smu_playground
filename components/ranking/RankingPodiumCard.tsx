@@ -62,7 +62,7 @@ export function RankingPodiumCard({
 
   const content = (
     <div
-      className={`relative flex flex-col justify-between h-full p-4 sm:p-7 rounded-[28px] ${themeStyles.cardBg} ${themeStyles.shadow} transition-all duration-200 hover:-translate-y-1 hover:shadow-lg cursor-pointer select-none`}
+      className={`relative flex flex-col justify-between h-full p-4 sm:p-7 rounded-[28px] ${themeStyles.cardBg} ${themeStyles.shadow} transition-all duration-200 hover:-translate-y-1 hover:shadow-lg cursor-pointer select-none overflow-hidden`}
       role="region"
       aria-label={ariaLabel || title}
     >
@@ -96,7 +96,7 @@ export function RankingPodiumCard({
       </div>
 
       {/* Podium Stage */}
-      <div className="relative pb-2">
+      <div className="relative pb-3 sm:pb-4">
         {/* 3 Podiums Row: 2nd (left), 1st (center), 3rd (right) */}
         <div className="grid grid-cols-3 items-end gap-1.5 sm:gap-3 pt-2 sm:pt-6">
           {/* 2nd Place (Left) */}
@@ -105,18 +105,31 @@ export function RankingPodiumCard({
               <TrophyIcon rank={2} size={48} />
             </div>
             {/* Pedestal Stand */}
-            <div className="w-full bg-white/95 backdrop-blur-sm rounded-t-2xl rounded-b-xl shadow-sm pt-3 pb-2.5 sm:pt-4 sm:pb-3 px-1 sm:px-2 flex flex-col items-center justify-center min-h-[84px] sm:min-h-[100px] text-center">
-              <span className="text-sm sm:text-base font-black text-stone-900 leading-tight line-clamp-2 break-keep-all text-center tracking-tight">
-                {second?.primaryText || "-"}
-              </span>
-              {second?.subText && (
-                <span className="text-xs sm:text-sm font-semibold text-stone-500 mt-0.5 line-clamp-1 w-full px-0.5">
-                  {second.subText}
-                </span>
+            <div className="w-full bg-white/95 backdrop-blur-sm rounded-t-2xl rounded-b-xl shadow-sm pt-3 pb-2.5 sm:pt-4 sm:pb-3 px-1 sm:px-2 flex flex-col items-center justify-center min-h-[88px] sm:min-h-[104px] text-center">
+              {second ? (
+                <>
+                  <span className="text-sm sm:text-base font-black text-stone-900 leading-tight line-clamp-2 break-keep-all text-center tracking-tight">
+                    {second.primaryText}
+                  </span>
+                  {second.subText && (
+                    <span className="text-sm font-semibold text-stone-500 mt-0.5 line-clamp-1 w-full px-0.5">
+                      {second.subText}
+                    </span>
+                  )}
+                  <b className="text-sm sm:text-base font-extrabold text-stone-700 mt-1 sm:mt-1.5">
+                    {second.score.toLocaleString("ko-KR")}점
+                  </b>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-1">
+                  <span className="text-sm font-black text-stone-400">
+                    2위
+                  </span>
+                  <span className="text-sm sm:text-base font-bold text-stone-400 mt-0.5">
+                    기록 대기
+                  </span>
+                </div>
               )}
-              <b className="text-sm sm:text-base font-extrabold text-stone-700 mt-1 sm:mt-1.5">
-                {second ? `${second.score.toLocaleString("ko-KR")}점` : "기록 대기"}
-              </b>
             </div>
           </div>
 
@@ -126,18 +139,31 @@ export function RankingPodiumCard({
               <TrophyIcon rank={1} size={58} />
             </div>
             {/* Pedestal Stand (Tallest) */}
-            <div className="w-full bg-white rounded-t-2xl rounded-b-xl shadow-md pt-3.5 pb-2.5 sm:pt-5 sm:pb-3.5 px-1 sm:px-2 flex flex-col items-center justify-center min-h-[96px] sm:min-h-[118px] text-center">
-              <span className="text-base sm:text-lg font-black text-stone-950 leading-tight line-clamp-2 break-keep-all text-center tracking-tight">
-                {first?.primaryText || "-"}
-              </span>
-              {first?.subText && (
-                <span className="text-xs sm:text-sm font-bold text-stone-600 mt-0.5 line-clamp-1 w-full px-0.5">
-                  {first.subText}
-                </span>
+            <div className="w-full bg-white rounded-t-2xl rounded-b-xl shadow-md pt-3.5 pb-2.5 sm:pt-5 sm:pb-3.5 px-1 sm:px-2 flex flex-col items-center justify-center min-h-[102px] sm:min-h-[120px] text-center">
+              {first ? (
+                <>
+                  <span className="text-base sm:text-lg font-black text-stone-950 leading-tight line-clamp-2 break-keep-all text-center tracking-tight">
+                    {first.primaryText}
+                  </span>
+                  {first.subText && (
+                    <span className="text-sm font-bold text-stone-600 mt-0.5 line-clamp-1 w-full px-0.5">
+                      {first.subText}
+                    </span>
+                  )}
+                  <b className="text-base sm:text-lg font-black text-amber-700 mt-1 sm:mt-1.5">
+                    {first.score.toLocaleString("ko-KR")}점
+                  </b>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-1">
+                  <span className="text-sm font-black text-amber-600/70">
+                    1위
+                  </span>
+                  <span className="text-base sm:text-lg font-bold text-stone-400 mt-0.5">
+                    기록 대기
+                  </span>
+                </div>
               )}
-              <b className="text-base sm:text-lg font-black text-amber-700 mt-1 sm:mt-1.5">
-                {first ? `${first.score.toLocaleString("ko-KR")}점` : "기록 대기"}
-              </b>
             </div>
           </div>
 
@@ -147,18 +173,31 @@ export function RankingPodiumCard({
               <TrophyIcon rank={3} size={42} />
             </div>
             {/* Pedestal Stand */}
-            <div className="w-full bg-white/95 backdrop-blur-sm rounded-t-2xl rounded-b-xl shadow-sm pt-2.5 pb-2 sm:pt-3 sm:pb-2.5 px-1 sm:px-2 flex flex-col items-center justify-center min-h-[74px] sm:min-h-[86px] text-center">
-              <span className="text-sm sm:text-base font-black text-stone-900 leading-tight line-clamp-2 break-keep-all text-center tracking-tight">
-                {third?.primaryText || "-"}
-              </span>
-              {third?.subText && (
-                <span className="text-xs sm:text-sm font-semibold text-stone-500 mt-0.5 line-clamp-1 w-full px-0.5">
-                  {third.subText}
-                </span>
+            <div className="w-full bg-white/95 backdrop-blur-sm rounded-t-2xl rounded-b-xl shadow-sm pt-2.5 pb-2 sm:pt-3 sm:pb-2.5 px-1 sm:px-2 flex flex-col items-center justify-center min-h-[78px] sm:min-h-[90px] text-center">
+              {third ? (
+                <>
+                  <span className="text-sm sm:text-base font-black text-stone-900 leading-tight line-clamp-2 break-keep-all text-center tracking-tight">
+                    {third.primaryText}
+                  </span>
+                  {third.subText && (
+                    <span className="text-sm font-semibold text-stone-500 mt-0.5 line-clamp-1 w-full px-0.5">
+                      {third.subText}
+                    </span>
+                  )}
+                  <b className="text-sm sm:text-base font-extrabold text-stone-700 mt-1 sm:mt-1.5">
+                    {third.score.toLocaleString("ko-KR")}점
+                  </b>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-1">
+                  <span className="text-sm font-black text-stone-400">
+                    3위
+                  </span>
+                  <span className="text-sm sm:text-base font-bold text-stone-400 mt-0.5">
+                    기록 대기
+                  </span>
+                </div>
               )}
-              <b className="text-sm sm:text-base font-extrabold text-stone-700 mt-1 sm:mt-1.5">
-                {third ? `${third.score.toLocaleString("ko-KR")}점` : "기록 대기"}
-              </b>
             </div>
           </div>
         </div>

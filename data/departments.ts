@@ -76,6 +76,15 @@ const collegeSeeds: CollegeSeed[] = [
     name: "교양대학",
     departments: [["open-major", "자율전공학부"]],
   },
+  {
+    id: "adult-learners",
+    name: "성인학습자 전담학과",
+    departments: [
+      ["life-business", "라이프경영학과"],
+      ["life-welfare-counseling", "라이프복지상담학과"],
+      ["bio-healthcare-convergence", "바이오헬스케어융합학과"],
+    ],
+  },
 ];
 
 export const colleges: College[] = collegeSeeds.map((college, index) => ({
