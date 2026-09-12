@@ -55,14 +55,11 @@ export function DepartmentGameTabs({ breakdown }: DepartmentGameTabsProps) {
       {/* 선택된 게임의 세로 랭킹 목록 */}
       {activeItem && (
         <div className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-6">
-          <div className="flex items-center justify-between pb-3 border-b border-stone-100 mb-2">
+          <div className="pb-3 border-b border-stone-100 mb-2">
             <div className="flex items-center gap-2 font-black text-base sm:text-lg text-stone-900">
               <span>{activeItem.game.emoji}</span>
               <span>{activeItem.game.name} 랭킹</span>
             </div>
-            <span className="text-sm font-semibold text-stone-500">
-              총 {activeItem.allScores.length}명 참여
-            </span>
           </div>
 
           {activeItem.allScores.length > 0 ? (

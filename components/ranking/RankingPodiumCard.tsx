@@ -105,16 +105,16 @@ export function RankingPodiumCard({
               <TrophyIcon rank={2} size={48} />
             </div>
             {/* Pedestal Stand */}
-            <div className="w-full bg-white/95 backdrop-blur-sm rounded-t-2xl rounded-b-xl shadow-sm pt-3 pb-2 sm:pt-4 sm:pb-3 px-1 flex flex-col items-center justify-center min-h-[80px] sm:min-h-[96px] text-center">
-              <span className="text-sm sm:text-base font-black text-stone-900 leading-tight line-clamp-1">
+            <div className="w-full bg-white/95 backdrop-blur-sm rounded-t-2xl rounded-b-xl shadow-sm pt-3 pb-2.5 sm:pt-4 sm:pb-3 px-1 sm:px-2 flex flex-col items-center justify-center min-h-[84px] sm:min-h-[100px] text-center">
+              <span className="text-sm sm:text-base font-black text-stone-900 leading-tight line-clamp-2 break-keep-all text-center tracking-tight">
                 {second?.primaryText || "-"}
               </span>
               {second?.subText && (
-                <span className="text-sm font-semibold text-stone-500 mt-0.5 line-clamp-1">
+                <span className="text-xs sm:text-sm font-semibold text-stone-500 mt-0.5 line-clamp-1 w-full px-0.5">
                   {second.subText}
                 </span>
               )}
-              <b className="text-sm sm:text-base font-extrabold text-stone-700 mt-1.5">
+              <b className="text-sm sm:text-base font-extrabold text-stone-700 mt-1 sm:mt-1.5">
                 {second ? `${second.score.toLocaleString("ko-KR")}점` : "기록 대기"}
               </b>
             </div>
@@ -126,16 +126,16 @@ export function RankingPodiumCard({
               <TrophyIcon rank={1} size={58} />
             </div>
             {/* Pedestal Stand (Tallest) */}
-            <div className="w-full bg-white rounded-t-2xl rounded-b-xl shadow-md pt-3 pb-2 sm:pt-5 sm:pb-4 px-1 flex flex-col items-center justify-center min-h-[90px] sm:min-h-[116px] text-center">
-              <span className="text-base sm:text-lg font-black text-stone-950 leading-tight line-clamp-1">
+            <div className="w-full bg-white rounded-t-2xl rounded-b-xl shadow-md pt-3.5 pb-2.5 sm:pt-5 sm:pb-3.5 px-1 sm:px-2 flex flex-col items-center justify-center min-h-[96px] sm:min-h-[118px] text-center">
+              <span className="text-base sm:text-lg font-black text-stone-950 leading-tight line-clamp-2 break-keep-all text-center tracking-tight">
                 {first?.primaryText || "-"}
               </span>
               {first?.subText && (
-                <span className="text-sm font-bold text-stone-600 mt-0.5 line-clamp-1">
+                <span className="text-xs sm:text-sm font-bold text-stone-600 mt-0.5 line-clamp-1 w-full px-0.5">
                   {first.subText}
                 </span>
               )}
-              <b className="text-base sm:text-lg font-black text-amber-700 mt-1.5">
+              <b className="text-base sm:text-lg font-black text-amber-700 mt-1 sm:mt-1.5">
                 {first ? `${first.score.toLocaleString("ko-KR")}점` : "기록 대기"}
               </b>
             </div>
@@ -147,16 +147,16 @@ export function RankingPodiumCard({
               <TrophyIcon rank={3} size={42} />
             </div>
             {/* Pedestal Stand */}
-            <div className="w-full bg-white/95 backdrop-blur-sm rounded-t-2xl rounded-b-xl shadow-sm pt-2 pb-2 sm:pt-3 sm:pb-3 px-1 flex flex-col items-center justify-center min-h-[72px] sm:min-h-[82px] text-center">
-              <span className="text-sm sm:text-base font-black text-stone-900 leading-tight line-clamp-1">
+            <div className="w-full bg-white/95 backdrop-blur-sm rounded-t-2xl rounded-b-xl shadow-sm pt-2.5 pb-2 sm:pt-3 sm:pb-2.5 px-1 sm:px-2 flex flex-col items-center justify-center min-h-[74px] sm:min-h-[86px] text-center">
+              <span className="text-sm sm:text-base font-black text-stone-900 leading-tight line-clamp-2 break-keep-all text-center tracking-tight">
                 {third?.primaryText || "-"}
               </span>
               {third?.subText && (
-                <span className="text-sm font-semibold text-stone-500 mt-0.5 line-clamp-1">
+                <span className="text-xs sm:text-sm font-semibold text-stone-500 mt-0.5 line-clamp-1 w-full px-0.5">
                   {third.subText}
                 </span>
               )}
-              <b className="text-sm sm:text-base font-extrabold text-stone-700 mt-1.5">
+              <b className="text-sm sm:text-base font-extrabold text-stone-700 mt-1 sm:mt-1.5">
                 {third ? `${third.score.toLocaleString("ko-KR")}점` : "기록 대기"}
               </b>
             </div>

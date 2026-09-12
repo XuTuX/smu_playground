@@ -119,7 +119,7 @@ insert into public.departments (id, college_id, name, slug, sort_order, is_activ
   ('animal-health', 'health-bio', '동물보건학과', 'animal-health', 8, true),
   ('companion-animal', 'health-bio', '반려동물산업학과', 'companion-animal', 9, true),
   ('sports-leisure', 'health-bio', '생활체육학과', 'sports-leisure', 10, true),
-  ('oriental-medicine-major', 'oriental-medicine', '한의예과/한의학과', 'oriental-medicine-major', 1, true),
+  ('oriental-medicine-major', 'oriental-medicine', '한의학과', 'oriental-medicine-major', 1, true),
   ('open-major', 'liberal-arts', '자율전공학부', 'open-major', 1, true)
 on conflict (id) do update set
   college_id = excluded.college_id,

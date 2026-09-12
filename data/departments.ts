@@ -69,7 +69,7 @@ const collegeSeeds: CollegeSeed[] = [
   {
     id: "oriental-medicine",
     name: "한의과대학",
-    departments: [["oriental-medicine-major", "한의예과/한의학과"]],
+    departments: [["oriental-medicine-major", "한의학과"]],
   },
   {
     id: "liberal-arts",

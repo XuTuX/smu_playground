@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { departments } from "@/data/departments";
 import { games } from "@/data/games";
+import { filterAdminRecords } from "@/lib/admin-record-filter";
 import type { AdminSnapshot } from "@/lib/admin-snapshot";
 import type { AdminScoreRecord } from "@/lib/types";
 
@@ -67,6 +68,7 @@ export function AdminConsole({
   const [busyScoreId, setBusyScoreId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<EditForm | null>(null);
   const [participantLookup, setParticipantLookup] = useState<ParticipantLookupState>("idle");
+  const [recordQuery, setRecordQuery] = useState("");
   const identifierRef = useRef<HTMLInputElement>(null);
   const departmentRef = useRef<HTMLInputElement>(null);
   const nicknameRef = useRef<HTMLInputElement>(null);
@@ -93,6 +95,14 @@ export function AdminConsole({
       name.toLocaleLowerCase("ko").includes(query),
     );
   }, [departmentQuery]);
+  const selectedGameRecords = useMemo(
+    () => filterAdminRecords(snapshot?.records ?? [], manualScore.gameId, ""),
+    [manualScore.gameId, snapshot],
+  );
+  const filteredRecords = useMemo(
+    () => filterAdminRecords(snapshot?.records ?? [], manualScore.gameId, recordQuery),
+    [manualScore.gameId, recordQuery, snapshot],
+  );
 
   const selectDepartment = useCallback((departmentId: string) => {
     const department = activeDepartments.find(({ id }) => id === departmentId);
@@ -422,6 +432,8 @@ export function AdminConsole({
                   aria-pressed={manualScore.gameId === game.id}
                   onClick={() => {
                     setParticipantLookup("idle");
+                    setRecordQuery("");
+                    setEditForm(null);
                     setManualScore((current) => ({
                       ...current,
                       gameId: game.id,
@@ -637,16 +649,32 @@ export function AdminConsole({
           <div>
             <h2 id="admin-records-title">등록 점수 관리</h2>
           </div>
-          <p>최근 수정 순 · 총 {snapshot.records.length}건</p>
+          <p>{getGameName(manualScore.gameId)} · {filteredRecords.length}건</p>
         </div>
         <p className="admin-records-note">
-          개인과 팀 모두 전화번호로 관리합니다. 학과와 이름 수정은 해당 개인 또는 팀의 모든 기록에 반영됩니다.
+          위에서 선택한 게임의 기록만 표시합니다. 전화번호, 닉네임·팀명 또는 학과명으로 검색할 수 있습니다.
         </p>
 
-        {snapshot.records.length === 0 ? (
+        <label className="admin-record-search">
+          기록 검색
+          <input
+            type="search"
+            autoComplete="off"
+            placeholder="전화번호, 이름 또는 학과 검색"
+            value={recordQuery}
+            onChange={(event) => setRecordQuery(event.target.value)}
+          />
+        </label>
+
+        {selectedGameRecords.length === 0 ? (
           <div className="admin-empty-state">
-            <strong>아직 등록된 점수가 없습니다.</strong>
-            <p>위 입력 폼에서 첫 점수를 등록하면 이곳에 수정·삭제 목록이 표시됩니다.</p>
+            <strong>{getGameName(manualScore.gameId)} 기록이 없습니다.</strong>
+            <p>위 입력 폼에서 점수를 등록하면 이곳에 표시됩니다.</p>
+          </div>
+        ) : filteredRecords.length === 0 ? (
+          <div className="admin-empty-state">
+            <strong>검색 결과가 없습니다.</strong>
+            <p>전화번호, 이름 또는 학과명을 다시 확인해주세요.</p>
           </div>
         ) : (
           <>
@@ -665,7 +693,7 @@ export function AdminConsole({
                   </tr>
                 </thead>
                 <tbody>
-                  {snapshot.records.map((record) => {
+                  {filteredRecords.map((record) => {
                     const editing = editForm?.id === record.id;
                     return (
                       <tr key={record.id}>
@@ -783,7 +811,7 @@ export function AdminConsole({
 
             {/* Mobile Cards */}
             <div className="admin-mobile-cards" aria-label="등록 점수 모바일 목록">
-              {snapshot.records.map((record) => {
+              {filteredRecords.map((record) => {
                 const editing = editForm?.id === record.id;
                 return (
                   <div className="admin-record-card" key={record.id}>

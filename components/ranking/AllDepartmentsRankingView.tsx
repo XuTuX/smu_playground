@@ -21,16 +21,10 @@ export function AllDepartmentsRankingView({
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-4">
-            <div className="px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl bg-white shadow-sm text-center">
-              <span className="text-sm font-bold text-stone-500 block">참여 학과</span>
-              <strong className="text-xl sm:text-2xl font-black text-stone-900 block mt-0.5">
-                {standings.length}개 학과
-              </strong>
-            </div>
             {champion && (
               <div className="px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl bg-white shadow-sm text-center">
                 <span className="text-sm font-bold text-stone-500 block">현재 1위 학과</span>
-                <strong className="text-lg sm:text-xl font-black text-amber-600 block mt-0.5 truncate max-w-[150px]">
+                <strong className="text-lg sm:text-xl font-black text-amber-600 block mt-0.5 break-keep-all">
                   {champion.departmentName}
                 </strong>
                 <span className="text-sm font-bold text-stone-500 block mt-0.5">
@@ -79,9 +73,6 @@ export function AllDepartmentsRankingView({
                     <strong className="block text-lg sm:text-xl font-black text-stone-900 truncate group-hover:text-amber-600 transition-colors">
                       {standing.departmentName}
                     </strong>
-                    <span className="text-sm font-semibold text-stone-500 mt-0.5 block">
-                      참가자 {standing.playerCount}명
-                    </span>
                   </div>
                 </div>
 

@@ -21,16 +21,10 @@ export function AllPlayersRankingView({
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-4">
-            <div className="px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl bg-white shadow-sm text-center">
-              <span className="text-sm font-bold text-stone-500 block">총 참가자</span>
-              <strong className="text-xl sm:text-2xl font-black text-sky-700 block mt-0.5">
-                {standings.length}명
-              </strong>
-            </div>
             {champion && (
               <div className="px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl bg-white shadow-sm text-center">
                 <span className="text-sm font-bold text-stone-500 block">현재 1위</span>
-                <strong className="text-lg sm:text-xl font-black text-amber-600 block mt-0.5 truncate max-w-[140px]">
+                <strong className="text-lg sm:text-xl font-black text-amber-600 block mt-0.5 break-keep-all">
                   {champion.nickname}
                 </strong>
                 <span className="text-sm font-bold text-stone-400 block mt-0.5">
