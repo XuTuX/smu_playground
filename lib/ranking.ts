@@ -387,9 +387,20 @@ export function getDashboardData(scores: ScoreRecord[]): DashboardData {
   };
 }
 
+export type DepartmentGameScoreEntry = {
+  id: string;
+  rank: number;
+  nickname: string;
+  score: number;
+  isDepartmentFirst: boolean;
+  createdAt: string;
+};
+
 export type DepartmentGameBreakdownItem = {
   game: (typeof games)[number];
   topScores: ScoreRecord[];
+  allScores: DepartmentGameScoreEntry[];
+  bestScore: DepartmentGameScoreEntry | null;
   subtotal: number;
   departmentRankInGame: number;
   topPerformer: {
@@ -419,22 +430,49 @@ export function getDepartmentGameBreakdown(
     const rankIndex = deptTotalsForGame.findIndex((d) => d.departmentId === departmentId);
     const departmentRankInGame = rankIndex >= 0 ? rankIndex + 1 : deptTotalsForGame.length + 1;
 
-    const topScores = scores
-      .filter(
-        (score) =>
-          score.departmentId === departmentId && score.gameId === game.id,
-      )
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 1);
+    // 2. Collect all scores for this department in this game (best score per participant)
+    const gameDeptScores = scores.filter(
+      (score) => score.departmentId === departmentId && score.gameId === game.id,
+    );
 
-    const subtotal = topScores.reduce((sum, score) => sum + score.score, 0);
-    const topPerformer = topScores[0]
-      ? { nickname: topScores[0].nickname, score: topScores[0].score }
+    const bestByParticipant = new Map<string, ScoreRecord>();
+    for (const score of gameDeptScores) {
+      const key = score.playerId ?? score.nickname;
+      const prev = bestByParticipant.get(key);
+      if (
+        !prev ||
+        score.score > prev.score ||
+        (score.score === prev.score && score.createdAt < prev.createdAt)
+      ) {
+        bestByParticipant.set(key, score);
+      }
+    }
+
+    const sortedScores = [...bestByParticipant.values()].sort(
+      (a, b) => b.score - a.score || a.createdAt.localeCompare(b.createdAt),
+    );
+
+    const allScores: DepartmentGameScoreEntry[] = sortedScores.map((s, idx) => ({
+      id: s.id,
+      rank: idx + 1,
+      nickname: s.nickname,
+      score: s.score,
+      isDepartmentFirst: idx === 0,
+      createdAt: s.createdAt,
+    }));
+
+    const bestScore = allScores[0] ?? null;
+    const subtotal = bestScore ? bestScore.score : 0;
+    const topPerformer = bestScore
+      ? { nickname: bestScore.nickname, score: bestScore.score }
       : null;
+    const topScores = sortedScores.slice(0, 1);
 
     return {
       game,
       topScores,
+      allScores,
+      bestScore,
       subtotal,
       departmentRankInGame,
       topPerformer,

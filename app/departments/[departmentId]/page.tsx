@@ -1,3 +1,4 @@
+import React from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -34,7 +35,7 @@ export default async function DepartmentDetailPage({
     ({ departmentId }) => departmentId === department.id,
   );
   const breakdown = getDepartmentGameBreakdown(scores, department.id);
-  const activeBreakdown = breakdown.filter(({ topScores }) => topScores.length > 0);
+  const activeBreakdown = breakdown.filter(({ allScores }) => allScores.length > 0);
 
   return (
     <div className="site-shell py-8 sm:py-12">
@@ -89,114 +90,182 @@ export default async function DepartmentDetailPage({
             </p>
           )}
         </div>
+
+        {/* Highlighted Total Score Sum Breakdown: 각 게임별 1등 점수만 추출하여 합산 */}
+        {standing && (
+          <div className="mt-6 pt-6 border-t border-amber-200/80">
+            <div className="flex items-center justify-between gap-2 flex-wrap mb-3">
+              <h3 className="text-base font-black text-stone-900 flex items-center gap-1.5">
+                <span>🎯</span> 게임별 1위 합산 총점 산출 내역
+              </h3>
+              <span className="text-sm font-semibold text-stone-600">
+                각 게임에서 학과 1위를 기록한 점수만 합산되어 총점이 결정됩니다
+              </span>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              {breakdown.map((item, idx) => (
+                <React.Fragment key={item.game.id}>
+                  {idx > 0 && <span className="text-stone-400 font-bold text-base">+</span>}
+                  <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-white border border-amber-200 shadow-sm text-sm">
+                    <span>{item.game.emoji}</span>
+                    <span className="font-bold text-stone-800">{item.game.name}</span>
+                    {item.bestScore ? (
+                      <>
+                        <span className="font-semibold text-stone-500 text-sm">
+                          ({item.bestScore.nickname})
+                        </span>
+                        <b className="font-black text-amber-700 text-base">
+                          {item.subtotal.toLocaleString("ko-KR")}점
+                        </b>
+                      </>
+                    ) : (
+                      <span className="text-stone-400 font-semibold text-sm">0점</span>
+                    )}
+                  </div>
+                </React.Fragment>
+              ))}
+              <span className="text-stone-400 font-bold text-base">=</span>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-amber-200 text-amber-950 font-black text-base shadow-sm">
+                총점 {standing.totalScore.toLocaleString("ko-KR")}점
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Game-by-Game Breakdown: Table / Cards */}
       <section className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-black text-stone-900">
-            게임별 성적 및 최고 득점자
+            게임별 성적 및 전체 참가 기록
           </h2>
-          <span className="text-xs sm:text-sm font-semibold text-stone-500">
-            게임별 학과 1위 기록 합산 기준
+          <span className="text-sm font-semibold text-stone-500">
+            게임별 학과 1위 기록만 학과 총점에 합산
           </span>
         </div>
 
         {activeBreakdown.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-            {breakdown.map(({ game, topScores, subtotal, departmentRankInGame, topPerformer }) => {
-              const hasScore = topScores.length > 0;
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+            {breakdown.map(
+              ({ game, allScores, bestScore, departmentRankInGame }) => {
+                const hasScore = allScores.length > 0;
 
-              return (
-                <div
-                  key={game.id}
-                  className={`p-5 sm:p-6 rounded-3xl border bg-white shadow-sm flex flex-col justify-between transition-all ${
-                    hasScore ? "border-stone-200" : "border-stone-200/60 opacity-60"
-                  }`}
-                >
-                  {/* Card Top: Game info + department stats */}
-                  <div>
-                    <div className="flex items-start justify-between gap-3 mb-4">
-                      <div className="flex items-center gap-3">
-                        <span className="w-11 h-11 rounded-2xl bg-stone-100 flex items-center justify-center text-2xl shrink-0">
-                          {game.emoji}
-                        </span>
-                        <div>
-                          <strong className="block text-lg font-black text-stone-900 leading-tight">
-                            {game.name}
-                          </strong>
-                          <span className="text-sm font-bold text-stone-500 mt-0.5 block">
-                            {game.rankingMode === "team" ? "협동 팀전" : "개인전"}
+                return (
+                  <div
+                    key={game.id}
+                    className={`p-5 sm:p-6 rounded-3xl border bg-white shadow-sm flex flex-col justify-between transition-all ${
+                      hasScore ? "border-stone-200" : "border-stone-200/60 opacity-60"
+                    }`}
+                  >
+                    <div>
+                      {/* Card Top: Game info + department stats */}
+                      <div className="flex items-start justify-between gap-3 mb-4">
+                        <div className="flex items-center gap-3">
+                          <span className="w-11 h-11 rounded-2xl bg-stone-100 flex items-center justify-center text-2xl shrink-0">
+                            {game.emoji}
                           </span>
+                          <div>
+                            <strong className="block text-lg font-black text-stone-900 leading-tight">
+                              {game.name}
+                            </strong>
+                            <span className="text-sm font-bold text-stone-500 mt-0.5 block">
+                              {game.rankingMode === "team" ? "협동 팀전" : "개인전"}
+                            </span>
+                          </div>
                         </div>
-                      </div>
 
-                      {hasScore && (
-                        <div className="px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 font-extrabold text-sm shrink-0">
-                          학과 {departmentRankInGame}위
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Highlighted Row (예: Counting Star | 1,250점 | 학과 1위 | 김민준 420점) */}
-                    {hasScore ? (
-                      <div className="p-3.5 rounded-2xl bg-stone-50 border border-stone-100 flex items-center justify-between flex-wrap gap-2 text-sm font-bold text-stone-700 mb-4">
-                        <div className="flex items-center gap-2">
-                          <span className="text-stone-500">획득 점수:</span>
-                          <b className="text-stone-900 text-base font-black">
-                            {subtotal.toLocaleString("ko-KR")}점
-                          </b>
-                        </div>
-                        {topPerformer && (
-                          <div className="flex items-center gap-1.5 text-sm">
-                            <span className="px-2 py-0.5 rounded-md bg-stone-200 text-stone-800 font-extrabold text-xs">
-                              최고 득점자
-                            </span>
-                            <span className="font-extrabold text-stone-900">
-                              {topPerformer.nickname}
-                            </span>
-                            <span className="text-amber-700 font-black">
-                              ({topPerformer.score.toLocaleString("ko-KR")}점)
-                            </span>
+                        {hasScore && (
+                          <div className="px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 font-extrabold text-sm shrink-0">
+                            전체 학과 {departmentRankInGame}위
                           </div>
                         )}
                       </div>
-                    ) : (
-                      <div className="p-4 text-center rounded-2xl bg-stone-50 text-stone-400 font-semibold text-sm mb-4">
-                        아직 기록이 등록되지 않았습니다.
-                      </div>
-                    )}
 
-                    {/* Department winner for this game */}
-                    {topScores.length > 0 && (
-                      <div className="space-y-1.5 pt-1 border-t border-stone-100">
-                        <div className="text-sm font-bold text-stone-500 mb-2">
-                          학과 내 1위 기록
-                        </div>
-                        {topScores.map((score, idx) => (
-                          <div
-                            key={score.id}
-                            className="flex items-center justify-between text-sm py-1 px-2 rounded-lg hover:bg-stone-50"
-                          >
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="w-5 font-bold text-stone-500 text-sm">
-                                {idx + 1}
-                              </span>
-                              <span className="font-bold text-stone-800 truncate">
-                                {score.nickname}
-                              </span>
-                            </div>
-                            <span className="font-black text-stone-900 shrink-0">
-                              {score.score.toLocaleString("ko-KR")}점
+                      {/* 1등만 따로 뺀 총점 합산 반영 박스 */}
+                      {hasScore && bestScore ? (
+                        <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 shadow-sm flex items-center justify-between gap-3 mb-4">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span className="w-10 h-10 rounded-xl bg-amber-400 text-stone-900 flex items-center justify-center font-black text-lg shrink-0">
+                              🏆
                             </span>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-sm font-black px-2.5 py-0.5 rounded-md bg-amber-200 text-amber-900">
+                                  총점 합산 반영 (1위)
+                                </span>
+                                <strong className="text-base font-black text-stone-900 truncate">
+                                  {bestScore.nickname}
+                                </strong>
+                              </div>
+                              <p className="text-sm font-semibold text-stone-600 mt-0.5">
+                                이 게임의 학과 1위 점수가 총점에 합산되었습니다.
+                              </p>
+                            </div>
                           </div>
-                        ))}
-                      </div>
-                    )}
+                          <b className="text-xl sm:text-2xl font-black text-amber-900 shrink-0">
+                            {bestScore.score.toLocaleString("ko-KR")}점
+                          </b>
+                        </div>
+                      ) : (
+                        <div className="p-4 text-center rounded-2xl bg-stone-50 text-stone-500 font-semibold text-sm mb-4">
+                          아직 등록된 기록이 없습니다.
+                        </div>
+                      )}
+
+                      {/* 전체 다 보여주는 학과 내 전체 순위 목록 */}
+                      {allScores.length > 0 && (
+                        <div className="space-y-1.5 pt-3 border-t border-stone-100">
+                          <div className="flex items-center justify-between text-sm font-bold text-stone-600 mb-2">
+                            <span>학과 내 전체 참가자 기록</span>
+                            <span>총 {allScores.length}명 참여</span>
+                          </div>
+                          <div className="space-y-1 max-h-60 overflow-y-auto pr-1">
+                            {allScores.map((score) => {
+                              const isFirst = score.isDepartmentFirst;
+                              return (
+                                <div
+                                  key={score.id}
+                                  className={`flex items-center justify-between text-sm py-2 px-3 rounded-xl transition-colors ${
+                                    isFirst
+                                      ? "bg-amber-100/60 font-bold border border-amber-300/80"
+                                      : "bg-stone-50 hover:bg-stone-100 text-stone-700"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2.5 min-w-0">
+                                    <span
+                                      className={`w-6 text-center font-black text-sm ${
+                                        isFirst ? "text-amber-800" : "text-stone-500"
+                                      }`}
+                                    >
+                                      {score.rank}위
+                                    </span>
+                                    <span className="font-extrabold text-stone-900 truncate">
+                                      {score.nickname}
+                                    </span>
+                                    {isFirst && (
+                                      <span className="text-sm font-extrabold px-2 py-0.5 rounded bg-amber-200 text-amber-900 shrink-0">
+                                        총점 반영
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span
+                                    className={`font-black text-base shrink-0 ${
+                                      isFirst ? "text-amber-900" : "text-stone-800"
+                                    }`}
+                                  >
+                                    {score.score.toLocaleString("ko-KR")}점
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              },
+            )}
           </div>
         ) : (
           <div className="p-12 text-center bg-white rounded-3xl border border-stone-200 shadow-sm">
