@@ -51,6 +51,32 @@ function formatPhone(value: string | null) {
   return value.replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3");
 }
 
+function formatPhoneInput(value: string): string {
+  let digits = value.replace(/\D/g, "");
+
+  if (digits.startsWith("010010")) {
+    digits = "010" + digits.slice(6);
+  } else if (digits.startsWith("01001")) {
+    digits = "010" + digits.slice(5);
+  } else if (digits.startsWith("0100")) {
+    digits = "010" + digits.slice(4);
+  }
+
+  if (!digits.startsWith("010")) {
+    digits = "010" + digits.slice(digits.startsWith("01") ? 2 : 0);
+  }
+
+  digits = digits.slice(0, 11);
+
+  if (digits.length <= 3) {
+    return "010-";
+  }
+  if (digits.length <= 7) {
+    return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  }
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+}
+
 function getRecordIdentifier(record: AdminScoreRecord) {
   return formatPhone(record.participantPhone);
 }
@@ -77,7 +103,7 @@ export function AdminConsole({
   const [manualScore, setManualScore] = useState({
     gameId: games[0]?.id ?? "",
     departmentId: activeDepartments[0]?.id ?? "",
-    phone: "",
+    phone: "010-",
     nickname: "",
     teamName: "",
     score: "",
@@ -147,8 +173,8 @@ export function AdminConsole({
   }, [hasSnapshot, load]);
 
   useEffect(() => {
-    const phone = manualScore.phone;
-    if (phone.length < 10) return;
+    const rawPhone = manualScore.phone.replace(/\D/g, "");
+    if (rawPhone.length < 10) return;
     const participantKind = selectedGameIsTeam ? "team" : "individual";
 
     const controller = new AbortController();
@@ -156,7 +182,7 @@ export function AdminConsole({
       setParticipantLookup("loading");
       try {
         const response = await fetch(
-          `/api/admin/participants/${phone}?kind=${participantKind}`,
+          `/api/admin/participants/${rawPhone}?kind=${participantKind}`,
           {
           cache: "no-store",
           signal: controller.signal,
@@ -173,7 +199,7 @@ export function AdminConsole({
         }
         if (body.found && body.participant) {
           setManualScore((current) =>
-            current.phone === phone
+            current.phone.replace(/\D/g, "") === rawPhone
               ? {
                   ...current,
                   nickname: selectedGameIsTeam
@@ -235,7 +261,7 @@ export function AdminConsole({
         body: JSON.stringify({
           game_id: manualScore.gameId,
           department_id: manualScore.departmentId,
-          phone: manualScore.phone,
+          phone: manualScore.phone.replace(/\D/g, ""),
           nickname: selectedGameIsTeam ? manualScore.teamName : manualScore.nickname,
           team_name: selectedGameIsTeam ? manualScore.teamName : null,
           score: Number(manualScore.score),
@@ -260,7 +286,7 @@ export function AdminConsole({
 
       setManualScore((current) => ({
         ...current,
-        phone: "",
+        phone: "010-",
         nickname: "",
         teamName: "",
         score: "",
@@ -437,7 +463,7 @@ export function AdminConsole({
                     setManualScore((current) => ({
                       ...current,
                       gameId: game.id,
-                      phone: "",
+                      phone: "010-",
                       nickname: "",
                       teamName: "",
                       score: "",
@@ -461,20 +487,28 @@ export function AdminConsole({
                 type="text"
                 inputMode="tel"
                 autoComplete="tel"
-                placeholder="01012345678"
-                minLength={10}
-                maxLength={11}
-                pattern="01[016789][0-9]{7,8}"
+                placeholder="010-1234-5678"
+                minLength={12}
+                maxLength={13}
+                pattern="010-[0-9]{3,4}-[0-9]{4}"
                 value={manualScore.phone}
                 onChange={(event) => {
-                  const digits = event.target.value.replace(/\D/g, "").slice(0, 11);
+                  const formatted = formatPhoneInput(event.target.value);
+                  const digits = formatted.replace(/\D/g, "");
+                  const prevDigits = manualScore.phone.replace(/\D/g, "");
                   setParticipantLookup("idle");
                   setManualScore((current) => ({
                     ...current,
-                    phone: digits,
-                    nickname: selectedGameIsTeam || digits === current.phone ? current.nickname : "",
-                    teamName: selectedGameIsTeam && digits !== current.phone ? "" : current.teamName,
+                    phone: formatted,
+                    nickname: selectedGameIsTeam || digits === prevDigits ? current.nickname : "",
+                    teamName: selectedGameIsTeam && digits !== prevDigits ? "" : current.teamName,
                   }));
+                }}
+                onFocus={(event) => {
+                  if (event.target.value === "010-") {
+                    const len = event.target.value.length;
+                    event.target.setSelectionRange(len, len);
+                  }
                 }}
                 onKeyDown={(event) => {
                   if (event.key !== "Enter") return;

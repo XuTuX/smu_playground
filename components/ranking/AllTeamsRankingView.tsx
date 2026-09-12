@@ -22,16 +22,10 @@ export function AllTeamsRankingView({
     <div className="py-6 sm:py-10">
       {/* Hero Header with Top 1, 2, 3 Podium */}
       <header className="p-5 sm:p-8 rounded-3xl bg-[#EAF8F1] shadow-sm mb-8 overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+        <div className="mb-4">
           <h1 className="text-2xl sm:text-4xl font-black text-stone-900 tracking-tight">
             전체 팀게임 순위
           </h1>
-          <div className="px-4 py-2 rounded-2xl bg-white/90 shadow-sm text-center self-start sm:self-auto">
-            <span className="text-sm font-bold text-stone-500">참여 팀: </span>
-            <strong className="text-sm sm:text-base font-black text-stone-900 ml-1">
-              {standings.length}팀
-            </strong>
-          </div>
         </div>
 
         {/* Top 3 Podium */}
@@ -39,19 +33,13 @@ export function AllTeamsRankingView({
       </header>
 
       {/* 4th Place and Below Ranking List */}
-      <div className="space-y-4">
+      <div>
         {standings.length === 0 ? (
           <div className="p-12 text-center bg-white rounded-3xl shadow-sm text-stone-500 font-semibold text-base">
             등록된 팀 기록이 없습니다.
           </div>
         ) : remainingStandings.length > 0 ? (
-          <>
-            <div className="flex items-center justify-between px-2">
-              <h2 className="text-lg sm:text-xl font-black text-stone-900 tracking-tight">
-                순위 목록 (4위 ~)
-              </h2>
-            </div>
-            <div className="space-y-3">
+          <div className="space-y-3">
               {remainingStandings.map((team) => (
                 <div
                   key={team.id}
@@ -104,7 +92,6 @@ export function AllTeamsRankingView({
                 </div>
               ))}
             </div>
-          </>
         ) : null}
       </div>
     </div>

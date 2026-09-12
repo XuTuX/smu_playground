@@ -67,7 +67,7 @@ export function HomePodiumSection({
     .map((standing) => ({
       rank: standing.rank as 1 | 2 | 3,
       primaryText: standing.teamName,
-      subText: `(${standing.departmentName})`,
+      subText: standing.departmentName,
       score: standing.score,
     }));
 
@@ -118,7 +118,7 @@ export function HomePodiumSection({
           }
           items={teamItems}
           href="/teams"
-          ariaLabel="팀게임 순위 목록 보기"
+          ariaLabel="팀게임 순위 보기"
         />
       </div>
 

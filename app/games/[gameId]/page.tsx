@@ -71,27 +71,17 @@ export default async function GameDetailPage({
 
       {/* Hero Header with Top 1, 2, 3 Podium */}
       <header className={`p-5 sm:p-8 rounded-3xl ${heroBg} shadow-sm mb-8 overflow-hidden`}>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl sm:text-4xl" aria-hidden="true">
-              {game.emoji}
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-3xl sm:text-4xl" aria-hidden="true">
+            {game.emoji}
+          </span>
+          <div>
+            <h1 className="text-2xl sm:text-4xl font-black text-stone-900 tracking-tight">
+              {game.name}
+            </h1>
+            <span className="text-sm font-semibold text-stone-500 mt-0.5 block">
+              {game.rankingMode === "team" ? "팀 게임" : "개인 게임"} 순위
             </span>
-            <div>
-              <h1 className="text-2xl sm:text-4xl font-black text-stone-900 tracking-tight">
-                {game.name}
-              </h1>
-              <span className="text-sm font-semibold text-stone-500 mt-0.5 block">
-                {game.rankingMode === "team" ? "팀 게임" : "개인 게임"} 순위
-              </span>
-            </div>
-          </div>
-
-          <div className="px-4 py-2 rounded-2xl bg-white/90 shadow-sm text-center self-start sm:self-auto">
-            <span className="text-sm font-bold text-stone-500">참여: </span>
-            <strong className="text-sm sm:text-base font-black text-stone-900 ml-1">
-              {playerStandings.length}
-              {game.rankingMode === "team" ? "팀" : "명"}
-            </strong>
           </div>
         </div>
 
@@ -100,7 +90,7 @@ export default async function GameDetailPage({
       </header>
 
       {/* 4th Place and Below Ranking List */}
-      <div className="space-y-4">
+      <div>
         {playerStandings.length === 0 ? (
           <div className="p-10 sm:p-12 text-center bg-white rounded-3xl shadow-sm">
             <EmptyState
@@ -111,13 +101,7 @@ export default async function GameDetailPage({
             />
           </div>
         ) : remainingStandings.length > 0 ? (
-          <>
-            <div className="flex items-center justify-between px-2">
-              <h2 className="text-lg sm:text-xl font-black text-stone-900 tracking-tight">
-                순위 목록 (4위 ~)
-              </h2>
-            </div>
-            <div className="space-y-3">
+          <div className="space-y-3">
               {remainingStandings.map((standing) => (
                 <Link
                   key={standing.id}
@@ -150,7 +134,6 @@ export default async function GameDetailPage({
                 </Link>
               ))}
             </div>
-          </>
         ) : null}
       </div>
     </div>
