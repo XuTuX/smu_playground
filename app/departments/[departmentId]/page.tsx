@@ -66,10 +66,6 @@ export default async function DepartmentDetailPage({
             <span>
               총점 <strong className="font-black text-stone-900">{standing.totalScore.toLocaleString("ko-KR")}점</strong>
             </span>
-            <span className="text-stone-300">·</span>
-            <span>
-              참여 <strong className="font-black text-stone-900">{standing.playerCount}명</strong>
-            </span>
           </div>
         ) : (
           <p className="text-sm font-semibold text-stone-500 mt-2">
