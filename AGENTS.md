@@ -11,6 +11,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Visual design rules
 
 - Avoid tiny decorative copy, eyebrow labels, technical codes, and filler captions that make the interface feel AI-generated.
+- Do NOT display filler count tags or badges like '참여 학과', '참여 인원', '참여 팀', '참여: N명/팀' in headers, cards, or lists. Keep headers focused strictly on titles and core rankings.
+- Do NOT display redundant subtitles/headings like '순위 목록 (4위 ~)' above the remaining rank list. Just show the ranking list cards directly.
 - Keep visible interface text at 14px or larger. If information is not useful enough to read at that size, remove it instead of shrinking it.
 - Let a small number of strong headings, labels, and real content carry the hierarchy. Do not add subtitles or descriptions only to fill empty space.
 - Prefer natural Korean event copy over English UI jargon or monospace metadata styling.

@@ -1,10 +1,10 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { PlayerRanking } from "@/components/ranking/PlayerRanking";
 import { RankingAutoRefresh } from "@/components/ranking/RankingAutoRefresh";
+import { TopThreePodium, type TopThreePodiumItem } from "@/components/ranking/TopThreePodium";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PressableLink } from "@/components/ui/PressableLink";
-import { RetroCard } from "@/components/ui/RetroCard";
 import { games, getGame } from "@/data/games";
 import { getAllScores } from "@/lib/score-store";
 import { getPlayerStandings } from "@/lib/ranking";
@@ -36,45 +36,123 @@ export default async function GameDetailPage({
   const gameScores = (await getAllScores()).filter((score) => score.gameId === game.id);
   const playerStandings = getPlayerStandings(gameScores);
 
+  const topThreeItems: TopThreePodiumItem[] = playerStandings
+    .filter((s) => s.rank <= 3)
+    .map((s) => ({
+      rank: s.rank as 1 | 2 | 3,
+      primaryText: s.nickname,
+      subText: s.departmentName,
+      score: s.score,
+      href: `/ranking/${s.id}`,
+    }));
+
+  const remainingStandings = playerStandings.filter((s) => s.rank > 3);
+
+  const accentBgMap: Record<string, string> = {
+    yellow: "bg-[#FFF9EA]",
+    pink: "bg-[#FDF0F3]",
+    sky: "bg-[#EEF6FF]",
+    mint: "bg-[#EAF8F1]",
+    orange: "bg-[#FFF3EB]",
+  };
+  const heroBg = accentBgMap[game.accent] ?? "bg-[#FFF9EA]";
+
   return (
-    <div className="site-shell game-detail-page">
+    <div className="site-shell py-6 sm:py-10">
       <RankingAutoRefresh />
-      <div className="page-back-nav">
-        <PressableLink href="/#game-rankings" className="pressable-cream page-back-button">
+      <div className="mb-6">
+        <PressableLink
+          href="/#game-rankings"
+          className="pressable-cream inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-white shadow-sm font-bold text-sm text-stone-700 hover:text-stone-950"
+        >
           ← 5종 게임 목록
         </PressableLink>
       </div>
 
-      <header className={`game-detail-hero accent-${game.accent} no-high-score`}>
-        <div>
-          <span className="game-detail-emoji" aria-hidden="true">
-            {game.emoji}
-          </span>
-          <h1>{game.name}</h1>
+      {/* Hero Header with Top 1, 2, 3 Podium */}
+      <header className={`p-5 sm:p-8 rounded-3xl ${heroBg} shadow-sm mb-8 overflow-hidden`}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl sm:text-4xl" aria-hidden="true">
+              {game.emoji}
+            </span>
+            <div>
+              <h1 className="text-2xl sm:text-4xl font-black text-stone-900 tracking-tight">
+                {game.name}
+              </h1>
+              <span className="text-sm font-semibold text-stone-500 mt-0.5 block">
+                {game.rankingMode === "team" ? "팀 게임" : "개인 게임"} 순위
+              </span>
+            </div>
+          </div>
+
+          <div className="px-4 py-2 rounded-2xl bg-white/90 shadow-sm text-center self-start sm:self-auto">
+            <span className="text-sm font-bold text-stone-500">참여: </span>
+            <strong className="text-sm sm:text-base font-black text-stone-900 ml-1">
+              {playerStandings.length}
+              {game.rankingMode === "team" ? "팀" : "명"}
+            </strong>
+          </div>
         </div>
+
+        {/* Top 3 Podium */}
+        <TopThreePodium items={topThreeItems} theme={game.accent as any} />
       </header>
 
-      {gameScores.length > 0 ? (
-        <section className="section-block game-ranking-section">
-          <div className="section-heading">
-            <h2>{game.rankingMode === "team" ? "팀" : "개인"} 순위</h2>
-          </div>
-          <RetroCard className="game-ranking-card">
-            <PlayerRanking standings={playerStandings} mode={game.rankingMode} />
-          </RetroCard>
-        </section>
-      ) : (
-        <section className="section-block">
-          <RetroCard className="game-empty-card">
+      {/* 4th Place and Below Ranking List */}
+      <div className="space-y-4">
+        {playerStandings.length === 0 ? (
+          <div className="p-10 sm:p-12 text-center bg-white rounded-3xl shadow-sm">
             <EmptyState
               title="아직 등록된 기록이 없어요!"
               description={`${game.name} 부스에 방문해서 오늘의 첫 번째 1위 기록을 세워보세요!`}
               actionText="다른 게임 순위 보기"
               actionHref="/#game-rankings"
             />
-          </RetroCard>
-        </section>
-      )}
+          </div>
+        ) : remainingStandings.length > 0 ? (
+          <>
+            <div className="flex items-center justify-between px-2">
+              <h2 className="text-lg sm:text-xl font-black text-stone-900 tracking-tight">
+                순위 목록 (4위 ~)
+              </h2>
+            </div>
+            <div className="space-y-3">
+              {remainingStandings.map((standing) => (
+                <Link
+                  key={standing.id}
+                  href={`/ranking/${standing.id}`}
+                  className="p-4 sm:p-5 bg-white rounded-3xl shadow-sm hover:shadow-md transition-all flex items-center justify-between gap-4 flex-wrap block"
+                >
+                  {/* Left: Rank badge + Name + Department */}
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <span className="w-11 h-11 rounded-2xl flex items-center justify-center text-sm sm:text-base shrink-0 bg-stone-100 text-stone-600 font-extrabold">
+                      {standing.rank}위
+                    </span>
+                    <div className="min-w-0">
+                      <strong className="block text-base sm:text-lg font-black text-stone-900 truncate">
+                        {standing.nickname}
+                      </strong>
+                      <span className="text-sm font-semibold text-stone-500 truncate block">
+                        {standing.departmentName}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Right: Score */}
+                  <div className="flex items-center gap-1.5 ml-auto">
+                    <span className="text-sm font-bold text-stone-500">기록</span>
+                    <b className="text-lg sm:text-xl font-black text-stone-900">
+                      {standing.score.toLocaleString("ko-KR")}
+                      <span className="text-sm font-bold ml-0.5">점</span>
+                    </b>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </>
+        ) : null}
+      </div>
     </div>
   );
 }
