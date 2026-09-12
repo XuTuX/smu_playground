@@ -26,7 +26,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 .page-root { min-height: calc(100vh - 180px); }
 .site-shell { width: min(1400px, calc(100% - 40px)); margin-inline: auto; }
-.site-header { position: sticky; z-index: 50; top: 0; border-bottom: 1px solid rgba(33, 29, 26, 0.08); background: rgba(255, 253, 245, 0.95); backdrop-filter: blur(10px); }
+.site-header { position: sticky; z-index: 50; top: 0; border-bottom: none; background: rgba(255, 253, 245, 0.95); backdrop-filter: blur(10px); }
 .header-inner { display: flex; min-height: 86px; align-items: center; gap: 32px; }
 .brand-lockup { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
 .brand-icon { display: flex; width: 36px; height: 36px; align-items: center; justify-content: center; border: 2px solid var(--ink); border-radius: 10px; background: var(--yellow); box-shadow: 2px 2px 0 var(--ink); color: var(--ink); flex-shrink: 0; transition: transform 120ms ease, box-shadow 120ms ease; }
@@ -944,7 +944,7 @@ html { scroll-behavior: auto; }
 }
 
 .site-header {
-  border-bottom: 2px solid var(--ink);
+  border-bottom: none;
   background: var(--paper);
 }
 
@@ -1188,7 +1188,7 @@ html { scroll-behavior: auto; }
   position: sticky;
   top: 0;
   z-index: 60;
-  border-bottom: 2px solid var(--ink);
+  border-bottom: none;
   background: rgba(255, 253, 247, 0.96);
   backdrop-filter: blur(8px);
 }

@@ -302,6 +302,15 @@ export function createManualScore(input: {
       nickname: input.nickname,
     };
     store.students.push(student);
+  } else {
+    student.departmentId = input.departmentId;
+    student.nickname = input.nickname;
+    for (const studentScore of store.scores) {
+      if (studentScore.playerId === student.id) {
+        studentScore.departmentId = input.departmentId;
+        studentScore.nickname = input.nickname;
+      }
+    }
   }
 
   const existing = store.scores.find(

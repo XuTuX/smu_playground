@@ -254,7 +254,7 @@ export function AdminConsole() {
         setSuccess(`기존 최고 점수 ${body.previousScore}점이 더 높아 순위는 그대로 유지됩니다.`);
       } else {
         const displayName = selectedGameIsTeam ? manualScore.teamName : manualScore.nickname;
-        setSuccess(`${displayName} ${selectedGameIsTeam ? "팀의" : "학생의"} ${body.score?.score}점을 등록했습니다.`);
+        setSuccess(`${displayName} ${selectedGameIsTeam ? "팀의" : "참가자의"} ${body.score?.score}점을 등록했습니다.`);
       }
 
       setManualScore((current) => ({
@@ -461,6 +461,9 @@ export function AdminConsole() {
                 inputMode="tel"
                 autoComplete="tel"
                 placeholder="01012345678"
+                minLength={10}
+                maxLength={11}
+                pattern="01[016789][0-9]{7,8}"
                 value={manualScore.phone}
                 onChange={(event) => {
                   const digits = event.target.value.replace(/\D/g, "").slice(0, 11);

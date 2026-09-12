@@ -41,14 +41,14 @@ type SupabaseScoreRow = {
   updated_at: string;
   student: {
     id: string;
-    phone_number: string | null;
+    phone_number?: string | null;
     nickname: string;
     department_id: string;
   } | null;
   team: {
     id: string;
     team_name: string;
-    representative_phone: string | null;
+    representative_phone?: string | null;
     department_id: string;
   } | null;
 };
@@ -122,7 +122,7 @@ async function fetchPublicScoreRows() {
     "team_name",
     "updated_at",
     "student:students!scores_student_id_fkey(id,nickname,department_id)",
-    "team:teams!scores_team_id_fkey(id,team_name,representative_phone,department_id)",
+    "team:teams!scores_team_id_fkey(id,team_name,department_id)",
   ].join(",");
   return supabaseRest<SupabaseScoreRow[]>(
     `scores?select=${encodeURIComponent(select)}&deleted_at=is.null&order=updated_at.asc`,
