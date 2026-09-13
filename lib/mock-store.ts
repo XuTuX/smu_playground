@@ -10,10 +10,7 @@ import type {
   ScoreRecord,
 } from "@/lib/types";
 
-type StoredScoreRecord = ScoreRecord & {
-  participantPhone?: string;
-  teamName?: string | null;
-};
+type StoredScoreRecord = ScoreRecord;
 
 type MockStudent = {
   id: string;
