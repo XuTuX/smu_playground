@@ -128,17 +128,15 @@ export function getParticipantProfile(
         departmentId: teamScore.departmentId,
       };
     }
+    return null;
+  }
+
+  if (participantKind === "individual") {
     if (student) {
-      return {
-        displayName: student.nickname,
-        departmentId: student.departmentId,
-      };
+      return { displayName: student.nickname, departmentId: student.departmentId };
     }
     if (indScore) {
-      return {
-        displayName: indScore.nickname,
-        departmentId: indScore.departmentId,
-      };
+      return { displayName: indScore.nickname, departmentId: indScore.departmentId };
     }
     return null;
   }
@@ -281,18 +279,20 @@ export function createManualScore(input: {
   const isTeam = getGame(input.gameId)?.rankingMode === "team";
   const participantName = (input.teamName ?? input.nickname).trim();
 
-  // Synchronize department and display name across all existing scores with this phone
-  for (const s of store.scores) {
-    if (s.participantPhone === input.phone) {
-      s.departmentId = input.departmentId;
-      s.nickname = participantName;
-      if (input.teamName) {
-        s.teamName = input.teamName;
+  if (isTeam) {
+    for (const existingScore of store.scores) {
+      if (existingScore.participantPhone === input.phone) {
+        existingScore.departmentId = input.departmentId;
+        if (getGame(existingScore.gameId)?.rankingMode === "team") {
+          existingScore.nickname = participantName;
+          existingScore.teamName = input.teamName;
+        }
       }
     }
-  }
 
-  if (isTeam) {
+    const student = store.students.find(({ phoneNumber }) => phoneNumber === input.phone);
+    if (student) student.departmentId = input.departmentId;
+
     const teamPlayerId = `mock-team-${input.phone}`;
     const existing = store.scores.find(
       (score) =>
@@ -348,6 +348,15 @@ export function createManualScore(input: {
     student.nickname = input.nickname;
   }
 
+  for (const existingScore of store.scores) {
+    if (existingScore.participantPhone === input.phone) {
+      existingScore.departmentId = input.departmentId;
+      if (getGame(existingScore.gameId)?.rankingMode !== "team") {
+        existingScore.nickname = input.nickname;
+      }
+    }
+  }
+
   const existing = store.scores.find(
     (score) =>
       (score.participantPhone === input.phone || score.playerId === student.id) &&
@@ -393,12 +402,15 @@ export function updateAdminScore(
   if (!score) return null;
 
   const phone = score.participantPhone;
+  const isTeam = getGame(score.gameId)?.rankingMode === "team";
   if (phone) {
     for (const s of store.scores) {
       if (s.participantPhone === phone) {
         s.departmentId = input.departmentId;
-        s.nickname = input.nickname;
-        if (s.teamName !== null && s.teamName !== undefined) {
+        if ((getGame(s.gameId)?.rankingMode === "team") === isTeam) {
+          s.nickname = input.nickname;
+        }
+        if (isTeam && getGame(s.gameId)?.rankingMode === "team") {
           s.teamName = input.nickname;
         }
       }
@@ -406,12 +418,14 @@ export function updateAdminScore(
     const student = store.students.find(({ phoneNumber }) => phoneNumber === phone);
     if (student) {
       student.departmentId = input.departmentId;
-      student.nickname = input.nickname;
+      if (!isTeam) {
+        student.nickname = input.nickname;
+      }
     }
   } else {
     score.departmentId = input.departmentId;
     score.nickname = input.nickname;
-    if (score.teamName) score.teamName = input.nickname;
+    if (isTeam) score.teamName = input.nickname;
   }
 
   score.score = input.score;

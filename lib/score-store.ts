@@ -242,8 +242,9 @@ export async function getParticipantProfile(
   }
   if (!isSupabaseConfigured()) throw new Error("Supabase 환경 변수가 설정되지 않았습니다.");
 
-  const checkKinds: Array<"team" | "individual"> =
-    participantKind === "team" ? ["team", "individual"] : ["individual", "team"];
+  const checkKinds: Array<"team" | "individual"> = participantKind
+    ? [participantKind]
+    : ["individual", "team"];
 
   for (const kind of checkKinds) {
     const isTeam = kind === "team";

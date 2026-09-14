@@ -1,3 +1,6 @@
+-- Keep team-game names independent from individual-game nicknames.
+-- The participant type is selected from games.ranking_mode inside the function.
+
 create or replace function public.upsert_admin_score_v3(
   p_phone text,
   p_game_id text,
@@ -289,3 +292,4 @@ begin
     v_score.updated_at;
 end;
 $$;
+

@@ -20,7 +20,7 @@ type EditForm = {
   id: string;
   gameId: string;
   departmentId: string;
-  nickname: string;
+  displayName: string;
   score: string;
 };
 
@@ -203,8 +203,7 @@ export function AdminConsole({
             current.phone.replace(/\D/g, "") === rawPhone
               ? {
                   ...current,
-                  nickname: name,
-                  teamName: name,
+                  ...(selectedGameIsTeam ? { teamName: name } : { nickname: name }),
                   departmentId: body.participant?.departmentId ?? current.departmentId,
                 }
               : current,
@@ -305,7 +304,7 @@ export function AdminConsole({
       id: record.id,
       gameId: record.gameId,
       departmentId: record.departmentId,
-      nickname: record.nickname,
+      displayName: record.nickname,
       score: String(record.score),
     });
   };
@@ -324,7 +323,9 @@ export function AdminConsole({
         body: JSON.stringify({
           game_id: editForm.gameId,
           department_id: editForm.departmentId,
-          nickname: editForm.nickname,
+          ...(isTeamGame(editForm.gameId)
+            ? { team_name: editForm.displayName }
+            : { nickname: editForm.displayName }),
           score: Number(editForm.score),
         }),
       });
@@ -739,9 +740,9 @@ export function AdminConsole({
                               type="text"
                               minLength={2}
                               maxLength={12}
-                              value={editForm.nickname}
+                              value={editForm.displayName}
                               onChange={(event) =>
-                                setEditForm({ ...editForm, nickname: event.target.value })
+                                setEditForm({ ...editForm, displayName: event.target.value })
                               }
                               form={`edit-score-${record.id}`}
                             />
@@ -856,13 +857,13 @@ export function AdminConsole({
                     {editing ? (
                       <form className="admin-mobile-edit-form" onSubmit={saveEdit}>
                         <label>
-                          닉네임 / 팀명
+                          {isTeamGame(editForm.gameId) ? "팀명" : "닉네임"}
                           <input
                             type="text"
                             minLength={2}
                             maxLength={12}
-                            value={editForm.nickname}
-                            onChange={(e) => setEditForm({ ...editForm, nickname: e.target.value })}
+                            value={editForm.displayName}
+                            onChange={(e) => setEditForm({ ...editForm, displayName: e.target.value })}
                             required
                           />
                         </label>

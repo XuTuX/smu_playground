@@ -94,15 +94,38 @@ export function validateAdminScoreEdit(input: unknown) {
   }
 
   const body = input as Record<string, unknown>;
-  const registration = validateRegistration(input);
   const gameId = typeof body.game_id === "string" ? body.game_id.trim() : "";
   const game = getGame(gameId);
+  const departmentId =
+    typeof body.department_id === "string" ? body.department_id.trim() : "";
+  const department = getDepartment(departmentId);
+  const nickname = typeof body.nickname === "string" ? body.nickname.trim() : "";
+  const teamName = typeof body.team_name === "string" ? body.team_name.trim() : "";
   const score = typeof body.score === "number" ? body.score : Number.NaN;
 
   if (!game?.isActive) {
     return { ok: false as const, error: "게임 정보를 확인할 수 없습니다." };
   }
-  if (!registration.ok) return registration;
+  if (!department?.isActive) {
+    return { ok: false as const, error: "활성 학과를 선택해주세요." };
+  }
+  const displayName = game.rankingMode === "team" ? teamName : nickname;
+  if (displayName.length < 2 || displayName.length > 12) {
+    return {
+      ok: false as const,
+      error: game.rankingMode === "team"
+        ? "팀명은 2~12자로 입력해주세요."
+        : "닉네임은 2~12자로 입력해주세요.",
+    };
+  }
+  if (/[<>\u0000-\u001f\u007f]/u.test(displayName)) {
+    return {
+      ok: false as const,
+      error: game.rankingMode === "team"
+        ? "팀명에 사용할 수 없는 문자가 있습니다."
+        : "닉네임에 사용할 수 없는 문자가 있습니다.",
+    };
+  }
   if (!Number.isSafeInteger(score) || score < 0 || score > game.maxScore) {
     return { ok: false as const, error: `점수는 0~${game.maxScore} 정수여야 합니다.` };
   }
@@ -110,8 +133,8 @@ export function validateAdminScoreEdit(input: unknown) {
   return {
     ok: true as const,
     value: {
-      departmentId: registration.value.departmentId,
-      displayName: registration.value.nickname,
+      departmentId,
+      displayName,
       score,
     },
   };

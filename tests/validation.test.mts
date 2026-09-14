@@ -55,6 +55,25 @@ test("점수 수정은 해당 게임의 최대 점수를 적용한다", () => {
   assert.equal(result.ok, false);
 });
 
+test("팀 점수 수정은 닉네임 대신 팀명을 별도로 검증한다", () => {
+  const missingTeamName = validateAdminScoreEdit({
+    game_id: "parking",
+    department_id: "ai-computer",
+    nickname: "개인닉네임",
+    score: 100,
+  });
+  assert.equal(missingTeamName.ok, false);
+
+  const valid = validateAdminScoreEdit({
+    game_id: "parking",
+    department_id: "ai-computer",
+    team_name: "별도팀명",
+    score: 100,
+  });
+  assert.equal(valid.ok, true);
+  if (valid.ok) assert.equal(valid.value.displayName, "별도팀명");
+});
+
 test("Supabase 점수 UUID 형식을 확인한다", () => {
   assert.equal(isValidScoreId("550e8400-e29b-41d4-a716-446655440000"), true);
   assert.equal(isValidScoreId("not-a-uuid"), false);
